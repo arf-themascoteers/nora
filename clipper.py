@@ -1,32 +1,32 @@
 import rasterio
 from pyproj import Transformer
+from get_bounding_box import get_bounding_box
+from rasterio.windows import Window
+from rasterio.warp import transform_bounds
+from rasterio.crs import CRS
+
 
 jp2_file_path = 'test.jp2'
+out_file = "out.tif"
 
-top_left_lon, top_left_lat = 142.121, -36.733
-bottom_right_lon, bottom_right_lat = 142.134, -36.747
+min_x, min_y, max_x, max_y = get_bounding_box()
 
 with rasterio.open(jp2_file_path) as src:
-    transformer = Transformer.from_crs("EPSG:4326", src.crs)
-    top_left_x, top_left_y = transformer.transform(top_left_lon, top_left_lat)
-    print(src.crs)
-    exit(0)
-    top_left_x, top_left_y = round(top_left_x), round(top_left_y)
+    epsg_4326 = CRS.from_epsg(4326)
+    min_x, min_y, max_x, max_y = transform_bounds(epsg_4326, src.crs, min_x, max_y, max_x, min_y)
+    window = src.window(min_x, min_y, max_x, max_y)
+    data = src.read(window=window)
 
-
-    bottom_right_x, bottom_right_y = transformer.transform(bottom_right_lon, bottom_right_lat)
-    bottom_right_x, bottom_right_y = round(bottom_right_x), round(bottom_right_y)
-    print(top_left_x, top_left_y, bottom_right_x, bottom_right_y)
-    rectangle = src.read(window=((top_left_y, bottom_right_y), (top_left_x, bottom_right_x)))
-    rectangle_meta = src.meta.copy()
-    rectangle_meta.update({
-        'height': bottom_right_y - top_left_y,
-        'width': bottom_right_x - top_left_x,
-        'transform': rasterio.windows.transform(window=((top_left_y, bottom_right_y), (top_left_x, bottom_right_x)), transform=src.transform)
+    profile = src.profile
+    profile.update({
+        'height': window.height,
+        'width': window.width,
+        'transform': rasterio.windows.transform(window, src.transform),
+        'nodata': None  # Optionally set the nodata value for the clipped raster
     })
 
-output_file_path = 'out.jp2'
-with rasterio.open(output_file_path, 'w', **rectangle_meta) as dst:
-    dst.write(rectangle)
+    # Write the clipped raster to the output file
+    with rasterio.open(out_file, 'w', **profile) as dst:
+        dst.write(data)
 
-print("Rectangle extracted and saved as:", output_file_path)
+print("Raster clipping completed.")

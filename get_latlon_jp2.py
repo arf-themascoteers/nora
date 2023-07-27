@@ -2,13 +2,8 @@ import numpy as np
 import rasterio as rio
 from pyproj import Transformer
 
-infile = "test.jp2"
-infile = "abc.tif"
-outfile = 'out.jp2'
-coordinates = (
-    (142.120954, -36.732497),
-    (142.135601, -36.748406)
-)
+infile = "out.tif"
+
 
 with rio.open(infile) as src:
     transform = src.transform
