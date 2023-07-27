@@ -25,10 +25,14 @@ class DSManager:
         if isinstance(config,str):
             if config == "vis":
                 self.x = DSManager.get_vis_bands()
-            if config == "props":
+            elif config == "props":
                 self.x = DSManager.get_soil_props()
-            if config == "vis-props":
+            elif config == "vis-props":
                 self.x = DSManager.get_soil_props_vis()
+            elif config == "bands":
+                self.x = list(train_df.columns)
+                self.x = list(set(self.x).difference(DSManager.get_soil_props()))
+                self.x.remove("som")
             elif config == "all":
                 self.x = list(train_df.columns)
                 self.x.remove("som")
@@ -50,7 +54,7 @@ class DSManager:
 
     @staticmethod
     def get_vis_bands():
-        return ["B02_0", "B03_0", "B04_0"]
+        return ["B02_1", "B03_1", "B04_1"]
 
     @staticmethod
     def get_soil_props():
