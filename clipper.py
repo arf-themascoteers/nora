@@ -1,7 +1,7 @@
 import rasterio
 from pyproj import Transformer
 
-jp2_file_path = 'abc.tif'
+jp2_file_path = 'test.jp2'
 
 top_left_lon, top_left_lat = 142.121, -36.733
 bottom_right_lon, bottom_right_lat = 142.134, -36.747

@@ -1,19 +1,11 @@
-import pandas as pd
 import shapefile as shp
 import pyproj
-
-vpd = pd.read_csv("data/vectis.csv")
-cnts = vpd.value_counts().reset_index(name='count')
-cnts = cnts[cnts["count"] > 1]
-#print(cnts)
+from get_bounding_box import get_bounding_box
 
 w = shp.Writer('data/shapes/shapes', shapeType=shp.POLYGON)
 w.field('field1', 'C')
 
-min_x = vpd["lon"].min()
-max_x = vpd["lon"].max()
-min_y = vpd["lat"].max()
-max_y = vpd["lat"].min()
+min_x, min_y, max_x, max_y = get_bounding_box()
 
 w.poly([[
   [min_x, min_y], [max_x, min_y], [max_x, max_y], [min_x, max_y]
