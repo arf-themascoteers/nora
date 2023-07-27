@@ -32,7 +32,7 @@ def iterate_bands(dest_band_folder_path):
             continue
         parts = band.split(".")
         band_part = parts[0]
-        if band_part in ["AOT", "WVP"]:
+        if band_part in ["AOT", "WVP", "SCL"]:
             continue
 
         band_path = os.path.join(dest_band_folder_path, band)
