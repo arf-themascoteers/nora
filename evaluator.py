@@ -130,13 +130,6 @@ class Evaluator:
         print("Start", f"{repeat_number}:{self.algorithms[index_algorithm]}")
         for index_config in range(len(self.configs)):
             config = self.configs[index_config]
-
-            if not config[0].endswith("_v"):
-                continue
-            band = int(config[0].split("_")[0])
-            if band < 1506:
-                continue
-
             print("Start", f"{config}")
             self.process_config(repeat_number, index_algorithm, index_config)
 
@@ -199,5 +192,5 @@ class Evaluator:
 
 if __name__ == "__main__":
     configs = ["all"]
-    c = Evaluator(configs=configs, algorithms=["ann","mlr"])
+    c = Evaluator(configs=configs, algorithms=["mlr"])
     c.process()
