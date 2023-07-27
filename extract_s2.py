@@ -28,62 +28,54 @@ def clip_bands(base, dest_band_folder_path, source_csv_path):
 
 def iterate_bands(dest_band_folder_path):
     for band in os.listdir(dest_band_folder_path):
-        if band.startswith("AOT"):
+        if not band.endswith(".tif"):
             continue
-        if band.endswith(".tif"):
-            band_path = os.path.join(dest_band_folder_path, band)
-            with rasterio.open(band_path) as src:
-                for subband in range(src.count):
-                    yield band, subband, src.read(subband+1)
+        parts = band.split(".")
+        band_part = parts[0]
+        if band_part in ["AOT", "WVP"]:
+            continue
+
+        band_path = os.path.join(dest_band_folder_path, band)
+        with rasterio.open(band_path) as src:
+            for sub_band in range(1, src.count+1):
+                yield band_part, sub_band, src
 
 
 def create_table(dest_band_folder_path, source_csv_path):
     epsg_4326 = CRS.from_epsg(4326)
-    bands = 0
-    for band, subband, data in iterate_bands(dest_band_folder_path):
-        bands = bands+1
+    bands = []
+    for band, sub_band, src in iterate_bands(dest_band_folder_path):
+        bands.append(f"{band}_{sub_band}")
 
     df = pd.read_csv(source_csv_path)
     df.drop(columns = ["when"], axis=1, inplace=True)
-    cols = len(df.columns)
-    new_cols = cols + bands
-    table = np.zeros((len(df), new_cols))
+    all_columns = list(df.columns) + bands
+    table = np.zeros((len(df), len(all_columns)))
     data = df.to_numpy()
     table[:,0:data.shape[1]] = data[:,0:data.shape[1]]
 
-    current_col = cols
-    for band in os.listdir(dest_band_folder_path):
-        if band.startswith("AOT"):
-            continue
-        if band.endswith(".tif"):
-            for i in range(len(table)):
-                lon = table[i, 0]
-                lat = table[i, 1]
+    current_col = len(df.columns)
+    for band, sub_band, src in iterate_bands(dest_band_folder_path):
+        for i in range(len(table)):
+            lon = table[i, 0]
+            lat = table[i, 1]
+            pixel_x, pixel_y = transform(epsg_4326, src.crs, [lon], [lat])
+            pixel_x = round(pixel_x[0])
+            pixel_y = round(pixel_y[0])
+            row, column = src.index(pixel_x, pixel_y)
+            row = min(row, src.shape[1]-1)
+            column = min(column, src.shape[0]-1)
+            window = Window(row, column, 1, 1)
+            pixel_value = src.read(sub_band, window=window)
+            pixel_value = pixel_value[0,0]
+            table[i,current_col] = pixel_value
 
-                band_path = os.path.join(dest_band_folder_path, band)
-                with rasterio.open(band_path) as src:
-                    for subband in range(src.count):
-                        pixel_x, pixel_y = transform(epsg_4326, src.crs, [lon], [lat])
-                        pixel_x = round(pixel_x[0])
-                        pixel_y = round(pixel_y[0])
-                        row, column = src.index(pixel_x, pixel_y)
-                        row = min(row, src.shape[1]-1)
-                        column = min(column, src.shape[0]-1)
-                        window = Window(row, column, 1, 1)
-                        pixel_value = src.read(subband+1, window=window)
-                        pixel_value = pixel_value[0,0]
+            if i!=0 and i%1000 == 0:
+                print(f"Done {i+1} ({table.shape[0]}) of {current_col+1} ({table.shape[1]})")
 
-                        table[i,current_col] = pixel_value
+        current_col = current_col + 1
 
-                if i%1000 == 0:
-                    print(f"Done {i} ({table.shape[0]}) of {current_col} ({table.shape[1]})")
-
-            current_col = current_col + 1
-
-    columns = list(df.columns)
-    for band, subband, data in iterate_bands(dest_band_folder_path):
-        columns.append(f"{band}_{subband}")
-    return table, columns
+    return table, all_columns
 
 
 def make_ml_ready(dest_csv_path, ml_csv_path):
@@ -101,7 +93,10 @@ def make_ml_ready(dest_csv_path, ml_csv_path):
 
 def process():
     TEST = False
-    SKIP_CREATE = False
+    SKIP_CREATE_CLIP_DIRECTORY = True
+    SKIP_CLIP = True
+    SKIP_DUMP = False
+
     source_csv = "vectis.csv"
     if TEST:
         source_csv = "vectis_min.csv"
@@ -111,7 +106,7 @@ def process():
     ml_csv_path = os.path.join("data", "ml.csv")
     dest_band_folder_path = os.path.join("data", "bands")
 
-    if not SKIP_CREATE:
+    if not SKIP_CREATE_CLIP_DIRECTORY:
         if os.path.exists(dest_band_folder_path):
             shutil.rmtree(dest_band_folder_path)
 
@@ -119,12 +114,15 @@ def process():
 
     base = r"D:\Data\Sentinel-2\S2B_MSIL2A_20220423T002659_N0400_R016_T54HXE_20220423T021724\S2B_MSIL2A_20220423T002659_N0400_R016_T54HXE_20220423T021724.SAFE\GRANULE\L2A_T54HXE_A026783_20220423T003625\IMG_DATA"
 
-    source_df = pd.read_csv(source_csv_path)
-    bands = clip_bands(base, dest_band_folder_path, source_csv_path)
+    if not SKIP_CLIP:
+        clip_bands(base, dest_band_folder_path, source_csv_path)
+
     table, columns = create_table(dest_band_folder_path, source_csv_path)
-    df = pd.DataFrame(data=table, columns=columns)
-    df.to_csv(dest_csv_path, index=False)
-    make_ml_ready(dest_csv_path, ml_csv_path)
+
+    if not SKIP_DUMP:
+        df = pd.DataFrame(data=table, columns=columns)
+        df.to_csv(dest_csv_path, index=False)
+        make_ml_ready(dest_csv_path, ml_csv_path)
 
 
 if __name__ == "__main__":
