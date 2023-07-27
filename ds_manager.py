@@ -25,6 +25,10 @@ class DSManager:
         if isinstance(config,str):
             if config == "vis":
                 self.x = DSManager.get_vis_bands()
+            if config == "props":
+                self.x = DSManager.get_soil_props()
+            if config == "vis-props":
+                self.x = DSManager.get_soil_props_vis()
             elif config == "all":
                 self.x = list(train_df.columns)
                 self.x.remove("som")
@@ -46,7 +50,15 @@ class DSManager:
 
     @staticmethod
     def get_vis_bands():
-        return ["B02.tif_0", "B03.tif_0", "B04.tif_0"]
+        return ["B02_0", "B03_0", "B04_0"]
+
+    @staticmethod
+    def get_soil_props():
+        return ["elevation", "moisture", "temp"]
+
+    @staticmethod
+    def get_soil_props_vis():
+        return DSManager.get_soil_props() + DSManager.get_vis_bands()
 
     def get_random_train_test_df(self, source):
         df = self.read_from_csv(self.file)
