@@ -15,3 +15,7 @@ def get_bounding_box():
 
   return min_x, min_y, max_x, max_y
 
+
+if __name__ == "__main__":
+  print(get_bounding_box())
+
