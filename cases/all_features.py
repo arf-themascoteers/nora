@@ -4,8 +4,8 @@ from ds_manager import DSManager
 
 os.chdir("../")
 
-bands = DSManager.get_bands()
+bands = DSManager.get_all()
 configs = [[band] for band in bands]
-c = Evaluator(configs=configs, algorithms=["ann"], prefix="all_bands")
+c = Evaluator(configs=configs, algorithms=["mlr","ann"], prefix="all_features", folds=5)
 c.process()
 
