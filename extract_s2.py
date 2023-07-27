@@ -51,14 +51,15 @@ def create_table(dest_band_folder_path, source_csv_path):
     data = df.to_numpy()
     table[:,0:data.shape[1]] = data[:,0:data.shape[1]]
 
-    for i in range(len(table)):
-        current_col = cols
-        lon = table[i,0]
-        lat = table[i,1]
-        for band in os.listdir(dest_band_folder_path):
-            if band.startswith("AOT"):
-                continue
-            if band.endswith(".tif"):
+    current_col = cols
+    for band in os.listdir(dest_band_folder_path):
+        if band.startswith("AOT"):
+            continue
+        if band.endswith(".tif"):
+            for i in range(len(table)):
+                lon = table[i, 0]
+                lat = table[i, 1]
+
                 band_path = os.path.join(dest_band_folder_path, band)
                 with rasterio.open(band_path) as src:
                     for subband in range(src.count):
@@ -73,7 +74,11 @@ def create_table(dest_band_folder_path, source_csv_path):
                         pixel_value = pixel_value[0,0]
 
                         table[i,current_col] = pixel_value
-                        current_col = current_col + 1
+
+                if i%1000 == 0:
+                    print(f"Done {i} ({table.shape[0]}) of {current_col} ({table.shape[1]})")
+
+            current_col = current_col + 1
 
     columns = list(df.columns)
     for band, subband, data in iterate_bands(dest_band_folder_path):
