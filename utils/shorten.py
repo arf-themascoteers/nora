@@ -3,12 +3,15 @@ import pandas as pd
 original = "../data/vectis.csv"
 shorter = "../data/shorter.csv"
 df = pd.read_csv(original)
-ndf = df[0:1]
-for i in range(len(df)):
-    if i!=0 and i%5 == 0:
-        ndf = pd.concat([ndf,df[i:i+1]])
+CUT = False
+if CUT:
+    ndf = df[0:1]
+    for i in range(1,len(df)):
+        if i%5 == 0:
+            ndf = pd.concat([ndf,df[i:i+1]])
+    df = ndf
 
-ndf = ndf[ndf["som"]>1.72]
-ndf = ndf[ndf["som"]<3.29]
+df = df[df["som"]>1.72]
+df = df[df["som"]<3.29]
 
-ndf.to_csv(shorter,index=False)
+df.to_csv(shorter,index=False)

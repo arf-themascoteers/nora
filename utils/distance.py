@@ -5,16 +5,29 @@ from haversine import haversine, Unit
 os.chdir("../")
 
 df = pd.read_csv("data/vectis.csv")
+diss = []
+for target in range(len(df)):
+    lon_1000 = df.loc[target, "lon"]
+    lat_1000 = df.loc[target, "lat"]
+    point_1000 = (lat_1000, lon_1000)
+    distance = 10000
+    for i in range(len(df)):
+        if i == target:
+            continue
+        lon = df.loc[i,"lon"]
+        lat = df.loc[i,"lat"]
+        point = (lat, lon)
+        dis = haversine(point, point_1000)*1000
+        if dis < distance:
+            distance = dis
 
-for i in range(len(df)-1):
-    lon = df.loc[i,"lon"]
-    lat = df.loc[i,"lat"]
+    print(distance)
+    diss.append(distance)
 
-    lon2 = df.loc[i+1,"lon"]
-    lat2 = df.loc[i+1,"lat"]
+diss = sorted(diss)
+print(diss[0])
+print(diss[-1])
 
-    dis = haversine((lat, lon), (lat2, lon2))*1000
-    print(dis)
 
 
 
