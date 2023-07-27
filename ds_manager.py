@@ -23,6 +23,10 @@ class DSManager:
                 self.x = DSManager.get_soil_props()
             elif config == "vis-props":
                 self.x = DSManager.get_soil_props_vis()
+            elif config == "upper-vis":
+                self.x = DSManager.get_upper_vis_bands()
+            elif config == "upper-vis-props":
+                self.x = DSManager.get_soil_props_upper_vis()
             elif config == "bands":
                 self.x = DSManager.get_bands()
             elif config == "all":
@@ -46,6 +50,14 @@ class DSManager:
     @staticmethod
     def get_vis_bands():
         return ["B02", "B03", "B04"]
+
+    @staticmethod
+    def get_upper_vis_bands():
+        return ["B05", "B06", "B07", "B08",	"B09", "B11", "B12", "B8A"]
+
+    @staticmethod
+    def get_soil_props_upper_vis():
+        return DSManager.get_soil_props() + DSManager.get_upper_vis_bands()
 
     @staticmethod
     def get_soil_props():
