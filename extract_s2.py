@@ -32,7 +32,7 @@ def iterate_bands(dest_band_folder_path):
             continue
         parts = band.split(".")
         band_part = parts[0]
-        if band_part in ["AOT", "WVP", "SCL"]:
+        if band_part in ["AOT", "WVP", "SCL", "TCI"]:
             continue
 
         band_path = os.path.join(dest_band_folder_path, band)
@@ -93,13 +93,17 @@ def make_ml_ready(dest_csv_path, ml_csv_path):
 
 def process():
     TEST = False
-    SKIP_CREATE_CLIP_DIRECTORY = True
-    SKIP_CLIP = True
+    SKIP_CREATE_CLIP_DIRECTORY = False
+    SKIP_CLIP = False
     SKIP_DUMP = False
+    SHORT = True
 
     source_csv = "vectis.csv"
     if TEST:
         source_csv = "vectis_min.csv"
+
+    if SHORT:
+        source_csv = "shorter.csv"
 
     source_csv_path = os.path.join("data", source_csv)
     dest_csv_path = os.path.join("data", "complete.csv")

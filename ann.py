@@ -14,8 +14,8 @@ class ANN(nn.Module):
         self.train_ds = train_ds
         self.test_ds = test_ds
         self.alpha = alpha
-        self.num_epochs = 300
-        self.batch_size = 1000
+        self.num_epochs = 1000
+        self.batch_size = 3000
         self.lr = 0.01
 
         x_size = train_ds.x.shape[1]
@@ -23,7 +23,9 @@ class ANN(nn.Module):
         self.linear = nn.Sequential(
             nn.Linear(x_size, 20),
             nn.LeakyReLU(),
-            nn.Linear(20, 1)
+            nn.Linear(20, 10),
+            nn.LeakyReLU(),
+            nn.Linear(10, 1)
         )
 
     def forward(self, x):

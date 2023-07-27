@@ -9,15 +9,9 @@ import torch
 
 
 class DSManager:
-    def __init__(self, name=None, folds=10, source=None, config=None):
+    def __init__(self, name=None, folds=10, config=None):
         torch.manual_seed(0)
-        DEV = False
-        if DEV:
-            self.file = "data/small_ml.csv"
-        else:
-            self.file = "data/ml.csv"
-
-        train_df, test_df = self.get_random_train_test_df(source)
+        train_df, test_df = self.get_random_train_test_df()
         self.x = []
         if config is None:
             config = "all"
@@ -30,12 +24,9 @@ class DSManager:
             elif config == "vis-props":
                 self.x = DSManager.get_soil_props_vis()
             elif config == "bands":
-                self.x = list(train_df.columns)
-                self.x = list(set(self.x).difference(DSManager.get_soil_props()))
-                self.x.remove("som")
+                self.x = DSManager.get_bands()
             elif config == "all":
-                self.x = list(train_df.columns)
-                self.x.remove("som")
+                self.x = DSManager.get_all()
 
         elif type(config) == list:
             self.x = config
@@ -64,13 +55,30 @@ class DSManager:
     def get_soil_props_vis():
         return DSManager.get_soil_props() + DSManager.get_vis_bands()
 
-    def get_random_train_test_df(self, source):
-        df = self.read_from_csv(self.file)
-        if source is not None:
-            df = df[df["source"] == source]
+    @staticmethod
+    def get_bands():
+        columns = list(DSManager.read_from_csv().columns)
+        columns = list(set(columns).difference(DSManager.get_soil_props()))
+        columns.remove("som")
+        return columns
+
+    @staticmethod
+    def get_all():
+        columns = list(DSManager.read_from_csv().columns)
+        columns.remove("som")
+        return columns
+
+    def get_random_train_test_df(self):
+        df = DSManager.read_from_csv()
         return model_selection.train_test_split(df, test_size=0.2, random_state=2)
 
-    def read_from_csv(self, file):
+    @staticmethod
+    def read_from_csv():
+        DEV = False
+        if DEV:
+            file = "data/small_ml.csv"
+        else:
+            file = "data/ml.csv"
         df = pd.read_csv(file)
         return df
 
