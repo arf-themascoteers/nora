@@ -45,7 +45,7 @@ class DSManager:
 
     @staticmethod
     def get_vis_bands():
-        return ["B02_1", "B03_1", "B04_1"]
+        return ["B02", "B03", "B04"]
 
     @staticmethod
     def get_soil_props():

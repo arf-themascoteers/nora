@@ -37,15 +37,14 @@ def iterate_bands(dest_band_folder_path):
 
         band_path = os.path.join(dest_band_folder_path, band)
         with rasterio.open(band_path) as src:
-            for sub_band in range(1, src.count+1):
-                yield band_part, sub_band, src
+            yield band_part, src
 
 
 def create_table(dest_band_folder_path, source_csv_path):
     epsg_4326 = CRS.from_epsg(4326)
     bands = []
-    for band, sub_band, src in iterate_bands(dest_band_folder_path):
-        bands.append(f"{band}_{sub_band}")
+    for band, src in iterate_bands(dest_band_folder_path):
+        bands.append(band)
 
     df = pd.read_csv(source_csv_path)
     df.drop(columns = ["when"], axis=1, inplace=True)
@@ -55,7 +54,7 @@ def create_table(dest_band_folder_path, source_csv_path):
     table[:,0:data.shape[1]] = data[:,0:data.shape[1]]
 
     current_col = len(df.columns)
-    for band, sub_band, src in iterate_bands(dest_band_folder_path):
+    for band, src in iterate_bands(dest_band_folder_path):
         for i in range(len(table)):
             lon = table[i, 0]
             lat = table[i, 1]
@@ -66,7 +65,7 @@ def create_table(dest_band_folder_path, source_csv_path):
             row = min(row, src.shape[1]-1)
             column = min(column, src.shape[0]-1)
             window = Window(row, column, 1, 1)
-            pixel_value = src.read(sub_band, window=window)
+            pixel_value = src.read(1, window=window)
             pixel_value = pixel_value[0,0]
             table[i,current_col] = pixel_value
 
