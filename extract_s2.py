@@ -9,10 +9,10 @@ import rasterio
 from rasterio.warp import transform
 from rasterio.crs import CRS
 from rasterio.windows import Window
-from sklearn.preprocessing import MinMaxScaler
 from datetime import datetime
 from shorten import shorten
 from aggregate import aggregate
+from make_ml_ready import make_ml_ready
 import re
 
 SENTINEL_2_HOME = r"D:\Data\Tim\Created\Vectis\Sentinel-2"
@@ -129,19 +129,6 @@ def create_table(dest_clipped_scene_folder_path, source_csv_path, scene_serial):
     return table, all_columns
 
 
-def make_ml_ready(dest_csv_path, ml_csv_path):
-    df = pd.read_csv(dest_csv_path)
-    df.drop(inplace=True, columns=["lat","lon"], axis=1)
-
-    data = df.to_numpy()
-    for i in range(data.shape[1]):
-        scaler = MinMaxScaler()
-        x_scaled = scaler.fit_transform(data[:, i].reshape(-1, 1))
-        data[:, i] = np.squeeze(x_scaled)
-    df = pd.DataFrame(data= data, columns=df.columns)
-    df.to_csv(ml_csv_path, index=False)
-
-
 def process():
     source_csv = "vectis.csv"
     if MIN_FILE:
@@ -200,7 +187,6 @@ def process():
 
 if __name__ == "__main__":
     process()
-    #print(get_epoch(["01-Apr-2022", "01-Mar-2023"]))
 
 
 
