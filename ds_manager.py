@@ -53,7 +53,7 @@ class DSManager:
 
     @staticmethod
     def get_upper_vis_bands():
-        return ["B05", "B06", "B07", "B08",	"B09", "B11", "B12", "B8A"]
+        return ["B05", "B06", "B07", "B11", "B12", "B8A"]
 
     @staticmethod
     def get_soil_props_upper_vis():

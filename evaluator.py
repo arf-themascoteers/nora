@@ -191,6 +191,6 @@ class Evaluator:
 
 
 if __name__ == "__main__":
-    configs = ["vis","props","vis-props","bands","all"]
+    configs = ["vis","props","vis-props","bands","upper-vis", "upper-vis-props","all"]
     c = Evaluator(configs=configs, algorithms=["mlr","ann"],prefix="both",folds=3)
     c.process()
