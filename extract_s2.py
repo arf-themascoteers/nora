@@ -23,6 +23,7 @@ SKIP_CLIP = False
 SHORT = True
 MIN_FILE = False
 AG = True
+EXCLUDE_LIST = ["S2B_MSIL2A_20220202T002659_N0400_R016_T54HXE_20220202T022339"]
 
 
 def get_epoch(str_dates):
@@ -130,6 +131,8 @@ def create_table(dest_clipped_scene_folder_path, source_csv_path, scene_serial):
 
 
 def process():
+    LOG = "data/log.txt"
+    log_file = open(LOG, "w")
     source_csv = "vectis.csv"
     if MIN_FILE:
         source_csv = "vectis_min.csv"
@@ -160,7 +163,8 @@ def process():
         scene_path = os.path.join(SENTINEL_2_HOME, scene)
         if not os.path.isdir(scene_path):
             continue
-
+        if scene in EXCLUDE_LIST:
+            continue
         base = get_base(scene_path)
         dest_clipped_scene_folder_path = os.path.join(dest_clipped_scene_folder_base_path, scene)
         if not SKIP_CLIP:
@@ -173,6 +177,8 @@ def process():
         else:
             df = pd.concat([df, current_df])
         print(f"Done scene {scene_serial}: {scene}")
+        log_file.write(f"{scene_serial},{scene}\n")
+
         if TEST:
             break
 
@@ -183,6 +189,7 @@ def process():
         aggregate(dest_csv_path, ag_csv_path)
         dest_csv_path = ag_csv_path
     make_ml_ready(dest_csv_path, ml_csv_path)
+    log_file.close()
 
 
 if __name__ == "__main__":
