@@ -1,6 +1,8 @@
 import os
 import pandas as pd
 import numpy as np
+
+import shorten
 from clipper import clip
 import shutil
 import rasterio
@@ -8,10 +10,24 @@ from rasterio.warp import transform
 from rasterio.crs import CRS
 from rasterio.windows import Window
 from sklearn.preprocessing import MinMaxScaler
+from datetime import datetime
+from shorten import shorten
+from aggregate import aggregate
+import re
 
 SENTINEL_2_HOME = r"D:\Data\Tim\Created\Vectis\Sentinel-2"
 EMPTY = -9999
-TEST = True
+TEST = False
+SKIP_CREATE_CLIP_DIRECTORY = False
+SKIP_CLIP = False
+SHORT = True
+MIN_FILE = False
+AG = True
+
+
+def get_epoch(str_dates):
+    return [int((datetime.strptime(str_date, '%d-%b-%y')).timestamp()) for str_date in str_dates]
+
 
 def get_base(scene_path):
     safe = os.listdir(scene_path)[0]
@@ -40,29 +56,29 @@ def clip_bands(base, dest_clipped_scene_folder_path, source_csv_path):
 
 
 def iterate_bands(dest_clipped_scene_folder_path):
-    for scene in os.listdir(dest_clipped_scene_folder_path):
-        scene_path = os.path.join(dest_clipped_scene_folder_path, scene)
-        for band in os.listdir(scene_path):
-            if not band.endswith(".tif"):
-                continue
-            parts = band.split(".")
-            band_part = parts[0]
-            if band_part in ["AOT", "WVP", "SCL", "TCI"]:
-                continue
+    bands = []
+    for band in os.listdir(dest_clipped_scene_folder_path):
+        if not band.endswith(".tif"):
+            continue
+        parts = band.split(".")
+        band_part = parts[0]
+        if band_part[0] != 'B':
+            continue
+        bands.append(band_part)
+    bands = sorted(bands, key=lambda x: int(re.findall(r'\d+', x)[0]))
 
-            band_path = os.path.join(scene_path, band)
-            with rasterio.open(band_path) as src:
-                yield band_part, src
+    for band in bands:
+        file_name = f"{band}.tif"
+        band_path = os.path.join(dest_clipped_scene_folder_path, file_name)
+        with rasterio.open(band_path) as src:
+            yield band,src
 
 
 def create_table(dest_clipped_scene_folder_path, source_csv_path, scene_serial):
     epsg_4326 = CRS.from_epsg(4326)
-    bands = []
-    for band, src in iterate_bands(dest_clipped_scene_folder_path):
-        bands.append(band)
-
+    bands = [band for band, src in iterate_bands(dest_clipped_scene_folder_path)]
     df = pd.read_csv(source_csv_path)
-    df.drop(columns = ["when"], axis=1, inplace=True)
+    df["when"] = get_epoch(df["when"])
     all_columns = list(df.columns) + ["row","column","scene"] + bands
     table = np.zeros((len(df), len(all_columns)))
     data = df.to_numpy()
@@ -127,21 +143,20 @@ def make_ml_ready(dest_csv_path, ml_csv_path):
 
 
 def process():
-    TEST = False
-    SKIP_CREATE_CLIP_DIRECTORY = False
-    SKIP_CLIP = False
-    SHORT = True
-
     source_csv = "vectis.csv"
-    if TEST:
+    if MIN_FILE:
         source_csv = "vectis_min.csv"
-
-    if SHORT:
-        source_csv = "shorter.csv"
 
     source_csv_path = os.path.join("data", source_csv)
     dest_csv_path = os.path.join("data", "complete.csv")
     ml_csv_path = os.path.join("data", "ml.csv")
+
+    if SHORT:
+        short_csv = "shorter.csv"
+        short_csv_path = os.path.join("data", short_csv)
+        shorten(source_csv_path, short_csv_path)
+        source_csv_path = short_csv_path
+
     dest_clipped_scene_folder_base_path = os.path.join("data", "clipped")
 
     if not SKIP_CREATE_CLIP_DIRECTORY:
@@ -158,28 +173,34 @@ def process():
         scene_path = os.path.join(SENTINEL_2_HOME, scene)
         if not os.path.isdir(scene_path):
             continue
+
+        base = get_base(scene_path)
+        dest_clipped_scene_folder_path = os.path.join(dest_clipped_scene_folder_base_path, scene)
         if not SKIP_CLIP:
-            base = get_base(scene_path)
-            dest_clipped_scene_folder_path = os.path.join(dest_clipped_scene_folder_base_path, scene)
             os.mkdir(dest_clipped_scene_folder_path)
             clip_bands(base, dest_clipped_scene_folder_path, source_csv_path)
-
-        table, columns = create_table(dest_clipped_scene_folder_base_path, source_csv_path, scene_serial)
+        table, columns = create_table(dest_clipped_scene_folder_path, source_csv_path, scene_serial)
         current_df = pd.DataFrame(data=table, columns=columns)
         if df is None:
             df = current_df
         else:
             df = pd.concat([df, current_df])
-        print(f"Done {scene_serial}: {scene}")
+        print(f"Done scene {scene_serial}: {scene}")
         if TEST:
             break
 
     df.to_csv(dest_csv_path, index=False)
+    if AG:
+        ag_csv = "ag.csv"
+        ag_csv_path = os.path.join("data", ag_csv)
+        aggregate(dest_csv_path, ag_csv_path)
+        dest_csv_path = ag_csv_path
     make_ml_ready(dest_csv_path, ml_csv_path)
 
 
 if __name__ == "__main__":
     process()
+    #print(get_epoch(["01-Apr-2022", "01-Mar-2023"]))
 
 
 
