@@ -159,7 +159,7 @@ def process():
     if os.path.exists(ml_csv_path):
         os.remove(ml_csv_path)
     df = None
-    scene_serial = 1
+    scene_serial = 0
     for scene in os.listdir(SENTINEL_2_HOME):
         scene_path = os.path.join(SENTINEL_2_HOME, scene)
         if not os.path.isdir(scene_path):
