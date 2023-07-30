@@ -159,7 +159,8 @@ def process():
     if os.path.exists(ml_csv_path):
         os.remove(ml_csv_path)
     df = None
-    for scene_serial, scene in enumerate(os.listdir(SENTINEL_2_HOME)):
+    scene_serial = 1
+    for scene in os.listdir(SENTINEL_2_HOME):
         scene_path = os.path.join(SENTINEL_2_HOME, scene)
         if not os.path.isdir(scene_path):
             continue
@@ -170,6 +171,7 @@ def process():
         if not SKIP_CLIP:
             os.mkdir(dest_clipped_scene_folder_path)
             clip_bands(base, dest_clipped_scene_folder_path, source_csv_path)
+        scene_serial = scene_serial + 1
         table, columns = create_table(dest_clipped_scene_folder_path, source_csv_path, scene_serial)
         current_df = pd.DataFrame(data=table, columns=columns)
         if df is None:
