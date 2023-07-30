@@ -23,6 +23,7 @@ SKIP_CLIP = False
 SHORT = True
 MIN_FILE = False
 AG = True
+ONLY = []#["S2B_MSIL2A_20220503T002659_N0400_R016_T54HXE_20220503T023159"]
 EXCLUDE_LIST = ["S2B_MSIL2A_20220202T002659_N0400_R016_T54HXE_20220202T022339"]
 
 
@@ -164,6 +165,9 @@ def process():
         scene_path = os.path.join(SENTINEL_2_HOME, scene)
         if not os.path.isdir(scene_path):
             continue
+        if len(ONLY) != 0:
+            if scene not in ONLY:
+                continue
         if scene in EXCLUDE_LIST:
             continue
         base = get_base(scene_path)
