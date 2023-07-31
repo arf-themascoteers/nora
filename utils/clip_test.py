@@ -7,7 +7,7 @@ import math
 
 
 def clip(source, dest, source_csv_path):
-    PADDING = 15
+    PADDING = 10
     min_x, min_y, max_x, max_y = get_bounding_box(source_csv_path)
     with rasterio.open(source) as src:
         epsg_4326 = CRS.from_epsg(4326)
@@ -48,7 +48,7 @@ def clip(source, dest, source_csv_path):
 
 
 if __name__ == "__main__":
-    source = r"D:\Data\Tim\Created\Vectis\Sentinel-2\S2B_MSIL2A_20220503T002659_N0400_R016_T54HXE_20220503T023159\S2B_MSIL2A_20220503T002659_N0400_R016_T54HXE_20220503T023159.SAFE\GRANULE\L2A_T54HXE_A026926_20220503T003625\IMG_DATA\R60m\T54HXE_20220503T002659_TCI_60m.jp2"
+    source = r"D:\Data\Tim\Created\Vectis\Sentinel-2\S2B_MSIL2A_20220503T002659_N0400_R016_T54HXE_20220503T023159\S2B_MSIL2A_20220503T002659_N0400_R016_T54HXE_20220503T023159.SAFE\GRANULE\L2A_T54HXE_A026926_20220503T003625\IMG_DATA\R10m\T54HXE_20220503T002659_B02_10m.jp2"
     dest = r"D:\out\abc.tif"
-    source_csv_path = "data/shorter.csv"
+    source_csv_path = "../data/shorter.csv"
     clip(source, dest, source_csv_path)

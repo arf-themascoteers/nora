@@ -55,7 +55,7 @@ def clip_bands(base, dest_clipped_scene_folder_path, source_csv_path):
                 continue
             done.append(band)
             source_band_path = os.path.join(resolution_path, file_name)
-            dest_band_path = os.path.join(dest_clipped_scene_folder_path, f"{band}.tif")
+            dest_band_path = os.path.join(dest_clipped_scene_folder_path, f"{band}.jp2")
             clip(source_band_path, dest_band_path, source_csv_path)
     return done
 
@@ -63,7 +63,7 @@ def clip_bands(base, dest_clipped_scene_folder_path, source_csv_path):
 def iterate_bands(dest_clipped_scene_folder_path):
     bands = []
     for band in os.listdir(dest_clipped_scene_folder_path):
-        if not band.endswith(".tif"):
+        if not band.endswith(".jp2"):
             continue
         parts = band.split(".")
         band_part = parts[0]
@@ -73,7 +73,7 @@ def iterate_bands(dest_clipped_scene_folder_path):
     bands = sorted(bands, key=lambda x: int(re.findall(r'\d+', x)[0]))
 
     for band in bands:
-        file_name = f"{band}.tif"
+        file_name = f"{band}.jp2"
         band_path = os.path.join(dest_clipped_scene_folder_path, file_name)
         with rasterio.open(band_path) as src:
             yield band,src
