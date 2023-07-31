@@ -19,4 +19,4 @@ def make_ml_ready(dest_csv_path, ml_csv_path):
 
 
 if __name__ == "__main__":
-    make_ml_ready("data/complete.csv","data/ml.csv")
+    make_ml_ready("data/ag.csv","data/ml.csv")

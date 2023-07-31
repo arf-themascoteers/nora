@@ -16,7 +16,6 @@ from make_ml_ready import make_ml_ready
 import re
 
 SENTINEL_2_HOME = r"D:\Data\Tim\Created\Vectis\Sentinel-2"
-EMPTY = -9999
 TEST = False
 SKIP_CREATE_CLIP_DIRECTORY = False
 SKIP_CLIP = False
@@ -37,23 +36,27 @@ def get_base(scene_path):
     granule_path = os.path.join(safe_path,"GRANULE")
     sub = os.listdir(granule_path)[0]
     sub_path = os.path.join(granule_path, sub)
-    base = os.path.join(os.path.join(sub_path,"IMG_DATA"), "R60m")
-    return base
+    img_path = os.path.join(os.path.join(sub_path,"IMG_DATA"))
+    return img_path
 
 
 def clip_bands(base, dest_clipped_scene_folder_path, source_csv_path):
     done = []
-    for file_name in os.listdir(base):
-        if not file_name.endswith(".jp2"):
-            continue
-        parts = file_name.split("_")
-        band = parts[2]
-        if band in done:
-            continue
-        done.append(band)
-        source_band_path = os.path.join(base, file_name)
-        dest_band_path = os.path.join(dest_clipped_scene_folder_path, f"{band}.tif")
-        clip(source_band_path, dest_band_path, source_csv_path)
+    folders = os.listdir(base)
+    folders = sorted(folders, key=lambda x: int(re.findall(r'\d+', x)[0]))
+    for resolution in folders:
+        resolution_path = os.path.join(base, resolution)
+        for file_name in os.listdir(resolution_path):
+            if not file_name.endswith(".jp2"):
+                continue
+            parts = file_name.split("_")
+            band = parts[2]
+            if band in done:
+                continue
+            done.append(band)
+            source_band_path = os.path.join(resolution_path, file_name)
+            dest_band_path = os.path.join(dest_clipped_scene_folder_path, f"{band}.tif")
+            clip(source_band_path, dest_band_path, source_csv_path)
     return done
 
 
@@ -95,9 +98,9 @@ def create_table(dest_clipped_scene_folder_path, source_csv_path, scene_serial):
 
     for i in range(len(table)):
         table[i, SCENE_INDEX] = scene_serial
-        table[i, ROW_INDEX] = EMPTY
-        table[i, COLUMN_INDEX] = EMPTY
 
+
+    prev_width = -1
     for band, src in iterate_bands(dest_clipped_scene_folder_path):
         for i in range(len(table)):
             if i!=0 and i%1000 == 0:
@@ -108,19 +111,20 @@ def create_table(dest_clipped_scene_folder_path, source_csv_path, scene_serial):
             lon = table[i, 0]
             lat = table[i, 1]
             pixel_x, pixel_y = transform(epsg_4326, src.crs, [lon], [lat])
-            pixel_x = round(pixel_x[0])
-            pixel_y = round(pixel_y[0])
             row, column = src.index(pixel_x, pixel_y)
-            row = min(row, src.shape[1]-1)
-            column = min(column, src.shape[0]-1)
+            row = row[0]
+            column = column[0]
 
-            if table[i,ROW_INDEX] == EMPTY:
+            row = min(row, src.height-1)
+            column = min(column, src.width-1)
+
+            if src.width >= prev_width:
+                prev_width = src.width
                 table[i,ROW_INDEX] = row
-
-            if table[i,COLUMN_INDEX] == EMPTY:
                 table[i,COLUMN_INDEX] = column
 
-            window = Window(row, column, 1, 1)
+
+            window = Window(column, row, 1, 1)
             pixel_value = src.read(1, window=window)
             pixel_value = pixel_value[0,0]
             table[i,band_col] = pixel_value
