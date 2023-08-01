@@ -9,6 +9,7 @@ from sklearn.linear_model import LinearRegression
 from sklearn.cross_decomposition import PLSRegression
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.svm import SVR
+import extract_s2
 
 
 class Evaluator:
@@ -191,6 +192,9 @@ class Evaluator:
 
 
 if __name__ == "__main__":
+    PROCESS_FIRST = True
+    if PROCESS_FIRST:
+        extract_s2.process()
     configs = ["vis","props","vis-props","bands","upper-vis", "upper-vis-props","all"]
     c = Evaluator(configs=configs, algorithms=["mlr","ann"],prefix="both",folds=3)
     c.process()

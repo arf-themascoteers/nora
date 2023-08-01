@@ -7,7 +7,7 @@ import math
 
 
 def clip(source, dest, source_csv_path):
-    PADDING = 15
+    PADDING = 20
     min_x, min_y, max_x, max_y = get_bounding_box(source_csv_path)
     with rasterio.open(source) as src:
         epsg_4326 = CRS.from_epsg(4326)
