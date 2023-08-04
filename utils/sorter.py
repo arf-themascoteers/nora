@@ -6,6 +6,6 @@ import re
 # bands = sorted(bands, key=lambda x: int(re.findall(r'\d+', x)[0]))
 # print(bands)
 
-folders = ["R10m","R60m","R20m"]
+folders = ["R10m","R20m","R60m"]
 folders = sorted(folders, key=lambda x: int(re.findall(r'\d+', x)[0]))
 print(folders)

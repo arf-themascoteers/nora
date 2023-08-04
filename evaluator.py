@@ -192,9 +192,10 @@ class Evaluator:
 
 
 if __name__ == "__main__":
-    PROCESS_FIRST = True
+    PROCESS_FIRST = False
     if PROCESS_FIRST:
         extract_s2.process()
-    configs = ["vis","props","vis-props","bands","upper-vis", "upper-vis-props","all"]
+    #configs = ["vis","props","vis-props","bands","upper-vis", "upper-vis-props","all"]
+    configs = ["vis","props","vis-props","bands","all"]
     c = Evaluator(configs=configs, algorithms=["mlr","ann"],prefix="both",folds=3)
     c.process()
