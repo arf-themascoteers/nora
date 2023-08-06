@@ -17,9 +17,9 @@ from sklearn.preprocessing import MinMaxScaler
 
 
 class S2Extractor:
-    def __init__(self, ag="low", scene=-1):
+    def __init__(self, ag="low", scene=0):
         self.FILTERED = True
-        self.SENTINEL_2_HOME = r"C:\data\s2"
+        self.SENTINEL_2_HOME = r"C:\data"
         self.ag = ag
 
         if type(scene) == list:
@@ -28,7 +28,7 @@ class S2Extractor:
             self.scene_list = os.listdir(self.SENTINEL_2_HOME)
             self.scene_list = [scene for scene in self.scene_list if scene.startswith("S2")
                                and os.path.isdir(os.path.join(self.SENTINEL_2_HOME, scene))]
-            if scene == -1:
+            if scene == 0:
                 scene = len(self.scene_list)
             self.scene_list = self.scene_list[0:scene]
         self.scene_list = sorted(self.scene_list)

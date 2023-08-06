@@ -24,7 +24,7 @@ class Evaluator:
         if self.algorithms is None:
             self.algorithms = ["mlr", "plsr", "rf", "svr"]#, "ann", "cnn", "transformer", "lstm"]
 
-        self.details_text_columns = ["algorithm", "config", "repeat", "fold"]
+        self.details_text_columns = ["algorithm", "config"]
 
         self.summary_file = f"results/{prefix}_summary.csv"
         self.details_file = f"results/{prefix}_details.csv"
@@ -51,17 +51,10 @@ class Evaluator:
 
     def get_details_alg_conf(self):
         details_alg_conf = []
-        for i in range(len(self.algorithms)):
-            for j in range(len(self.config_list)):
-                details_alg_conf.append((i,j))
+        for i in self.algorithms:
+            for j in self.config_list:
+                details_alg_conf.append((i,j["name"]))
         return details_alg_conf
-
-    def get_details_repeat_folds(self):
-        details_rep_fs = []
-        for i in range(self.repeat):
-            for j in range(self.folds):
-                details_rep_fs.append((i,j))
-        return details_rep_fs
 
     def get_details_row(self, index_algorithm, index_config):
         return index_algorithm*len(self.config_list) + index_config
@@ -83,7 +76,7 @@ class Evaluator:
         if not os.path.exists(self.details_file):
             self.write_details()
         df = pd.read_csv(self.details_file)
-        df.drop(columns=[self.details_text_columns], axis=1, inplace=True)
+        df.drop(columns=self.details_text_columns, axis=1, inplace=True)
         self.details = df.to_numpy()
 
     def create_log_file(self):
@@ -103,21 +96,15 @@ class Evaluator:
         df.to_csv(self.summary_file, index=False)
 
     def write_details(self):
-        df = pd.DataFrame(data=self.details)
+        df = pd.DataFrame(data=self.details, columns=self.get_details_columns())
         details_alg_conf = self.get_details_alg_conf()
         algs = [i[0] for i in details_alg_conf]
         confs = [i[1] for i in details_alg_conf]
 
-        df.insert(0,"algorithms",pd.Series(algs))
+        df.insert(0,"algorithm",pd.Series(algs))
         df.insert(1,"config",pd.Series(confs))
 
-        rfs = self.get_details_repeat_folds()
-        repeats = [i[0] for i in rfs]
-        folds = [i[1] for i in rfs]
-        df.insert(2,"repeat",pd.Series(repeats))
-        df.insert(3, "fold", pd.Series(folds))
-
-        df.to_csv(self.details_file, index=False, header=False)
+        df.to_csv(self.details_file, index=False)
 
     def log_scores(self, repeat_number, fold_number, algorithm, config, score):
         log_file = open(self.log_file, "a")
@@ -318,6 +305,14 @@ class Evaluator:
         superset = Evaluator.get_sperset()
         superset.remove(the_output)
         return superset
+
+    def get_details_columns(self):
+        cols = []
+        for repeat in range(1,self.repeat+1):
+            for fold in range(1,self.folds+1):
+                cols.append(f"{repeat}-{fold}")
+        return cols
+
 
 if __name__ == "__main__":
     #configs = ["vis","props","vis-props","bands","upper-vis", "upper-vis-props","all"]
