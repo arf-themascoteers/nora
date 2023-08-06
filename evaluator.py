@@ -9,14 +9,11 @@ from sklearn.linear_model import LinearRegression
 from sklearn.cross_decomposition import PLSRegression
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.svm import SVR
-import extract_s2
+from s2 import S2Extractor
 
 
 class Evaluator:
     def __init__(self, prefix="", verbose=False, repeat=1, folds=10, algorithms=None, configs=None):
-        self.configs = configs
-        if self.configs is None:
-            self.configs = []
         self.TEST = False
         self.TEST_SCORE = 0
         self.repeat = repeat
@@ -27,39 +24,47 @@ class Evaluator:
         if self.algorithms is None:
             self.algorithms = ["mlr", "plsr", "rf", "svr"]#, "ann", "cnn", "transformer", "lstm"]
 
+        self.details_text_columns = ["algorithm", "config", "repeat", "fold"]
+
         self.summary_file = f"results/{prefix}_summary.csv"
         self.details_file = f"results/{prefix}_details.csv"
         self.log_file = f"results/{prefix}_log.txt"
 
-        self.details = np.zeros(( len(self.algorithms) * len(self.configs), self.repeat*self.folds))
-        self.details_index = self.get_details_index()
+        self.details = np.zeros(( len(self.algorithms) * len(configs), self.repeat*self.folds))
+
+        self.config_list = []
+        for config in configs:
+            self.config_list.append(Evaluator.create_config_object(config))
 
         self.sync_details_file()
         self.create_log_file()
 
-    def get_config_name(self, config):
-        if isinstance(config, str):
-            return config
-        if len(config) == 1:
-            return config[0]
-        return config[0]+"+"
 
-    def get_details_index(self):
-        details_index = []
+        #self.summary_text_columns = ["config", "input", "output", "text", "scene"]
+
+    @staticmethod
+    def get_input_name(config):
+        inp = config["input"]
+        if len(inp) == 1:
+            return inp[0]
+        return f"{inp[0]}+{len(inp)-1}"
+
+    def get_details_alg_conf(self):
+        details_alg_conf = []
         for i in range(len(self.algorithms)):
-            for j in range(len(self.configs)):
-                details_index.append(f"I-{self.algorithms[i]}-{self.configs[j]}")
-        return details_index
+            for j in range(len(self.config_list)):
+                details_alg_conf.append((i,j))
+        return details_alg_conf
 
-    def get_details_columns(self):
-        details_columns = []
+    def get_details_repeat_folds(self):
+        details_rep_fs = []
         for i in range(self.repeat):
             for j in range(self.folds):
-                details_columns.append(f"I-{i}-{j}")
-        return details_columns
+                details_rep_fs.append((i,j))
+        return details_rep_fs
 
     def get_details_row(self, index_algorithm, index_config):
-        return index_algorithm*len(self.configs) + index_config
+        return index_algorithm*len(self.config_list) + index_config
 
     def get_details_column(self, repeat_number, fold_number):
         return repeat_number*self.folds + fold_number
@@ -78,7 +83,7 @@ class Evaluator:
         if not os.path.exists(self.details_file):
             self.write_details()
         df = pd.read_csv(self.details_file)
-        df.drop(columns=df.columns[0], axis=1, inplace=True)
+        df.drop(columns=[self.details_text_columns], axis=1, inplace=True)
         self.details = df.to_numpy()
 
     def create_log_file(self):
@@ -89,15 +94,30 @@ class Evaluator:
         log_file.close()
 
     def write_summary(self, summary):
-        df = pd.DataFrame(data=summary, columns=self.algorithms, index=self.get_summary_index())
-        df.to_csv(self.summary_file)
-
-    def get_summary_index(self):
-        return [self.get_config_name(config) for config in self.configs]
+        df = pd.DataFrame(data=summary, columns=self.algorithms)
+        df.insert(0,"config",pd.Series([c["name"] for c in self.config_list]))
+        df.insert(1,"input",pd.Series(["-".join(c["input"]) for c in self.config_list]))
+        df.insert(2,"output",pd.Series([c["output"] for c in self.config_list]))
+        df.insert(3,"ag",pd.Series([c["ag"] for c in self.config_list]))
+        df.insert(4,"scene",pd.Series([c["scene"] for c in self.config_list]))
+        df.to_csv(self.summary_file, index=False)
 
     def write_details(self):
-        df = pd.DataFrame(data=self.details, columns=self.get_details_columns(), index=self.get_details_index())
-        df.to_csv(self.details_file)
+        df = pd.DataFrame(data=self.details)
+        details_alg_conf = self.get_details_alg_conf()
+        algs = [i[0] for i in details_alg_conf]
+        confs = [i[1] for i in details_alg_conf]
+
+        df.insert(0,"algorithms",pd.Series(algs))
+        df.insert(1,"config",pd.Series(confs))
+
+        rfs = self.get_details_repeat_folds()
+        repeats = [i[0] for i in rfs]
+        folds = [i[1] for i in rfs]
+        df.insert(2,"repeat",pd.Series(repeats))
+        df.insert(3, "fold", pd.Series(folds))
+
+        df.to_csv(self.details_file, index=False, header=False)
 
     def log_scores(self, repeat_number, fold_number, algorithm, config, score):
         log_file = open(self.log_file, "a")
@@ -111,8 +131,8 @@ class Evaluator:
             self.process_repeat(repeat_number)
 
     def update_summary(self):
-        score_mean = np.zeros((len(self.configs),len(self.algorithms)))
-        for index_config in range(len(self.configs)):
+        score_mean = np.zeros((len(self.config_list),len(self.algorithms)))
+        for index_config in range(len(self.config_list)):
             for index_algorithm in range(len(self.algorithms)):
                 details_row = self.get_details_row(index_algorithm, index_config)
                 detail_cells = self.details[details_row, :]
@@ -129,15 +149,17 @@ class Evaluator:
 
     def process_algorithm(self, repeat_number, index_algorithm):
         print("Start", f"{repeat_number}:{self.algorithms[index_algorithm]}")
-        for index_config in range(len(self.configs)):
-            config = self.configs[index_config]
+        for index_config in range(len(self.config_list)):
+            config = self.config_list[index_config]
             print("Start", f"{config}")
             self.process_config(repeat_number, index_algorithm, index_config)
 
     def process_config(self, repeat_number, index_algorithm, index_config):
         algorithm = self.algorithms[index_algorithm]
-        config = self.configs[index_config]
-        ds = ds_manager.DSManager(folds=self.folds, config=config)
+        config = self.config_list[index_config]
+        s2e = S2Extractor()
+        csv, scenes = s2e.process()
+        ds = ds_manager.DSManager(self.csv, folds=self.folds, x=config["input"], y=config["output"])
         for fold_number, (train_ds, test_ds) in enumerate(ds.get_k_folds()):
             score = self.get_details(index_algorithm, repeat_number, fold_number, index_config)
             if score != 0:
@@ -190,12 +212,115 @@ class Evaluator:
             index.append(alg)
         return index
 
+    @staticmethod
+    def create_config_object(config):
+        config_object = {"input":[],"output":"som","ag":"low","scene":0,"force_create":False,"name":None}
+        if isinstance(config,str) or type(config) == list:
+            config_object["input"] = Evaluator.get_columns_by_input_info(config)
+        else:
+            if isinstance(config["input"], str):
+                config_object["input"] = Evaluator.get_columns_by_input_info(config["input"])
+            for a_prop in ["output","ag","scene","force_create","name"]:
+                if a_prop in config:
+                    config_object[a_prop] = config[a_prop]
+
+        if config_object["name"] is None:
+            if isinstance(config, str):
+                config_object["name"] = config
+            else:
+                config_object["name"] = Evaluator.get_input_name(config)
+            ag_name = "None"
+            if config_object["ag"] is not None:
+                ag_name = config_object["ag"]
+            config_object["name"] = f"{config_object['name']}_{ag_name}_{config_object['scene']}"
+
+        return config_object
+
+    @staticmethod
+    def get_bands():
+        return ["B01", "B02", "B03", "B04", "B05", "B06", "B07", "B08", "B8A", "B09", "B11", "B12"]
+
+    @staticmethod
+    def get_columns_by_input_info(input_info):
+        if input_info is None:
+            input_info = "all"
+
+        if isinstance(input_info, str):
+            if input_info == "vis":
+                return Evaluator.get_vis_bands()
+            elif input_info == "props":
+                return Evaluator.get_soil_props()
+            elif input_info == "props_ex_som":
+                the_list = Evaluator.get_soil_props()
+                the_list.remove("som")
+                return the_list
+            elif input_info.startswith("props_ex_prop_"):
+                the_list = Evaluator.get_soil_props()
+                the_prop = input_info[len("props_ex_prop_"):]
+                the_list.remove(the_prop)
+                return the_list
+            elif input_info == "vis_props":
+                return Evaluator.get_soil_props_vis()
+            elif input_info == "vis_props_ex_som":
+                the_list = Evaluator.get_soil_props_vis()
+                the_list.remove("som")
+                return the_list
+            elif input_info == "upper_vis":
+                return Evaluator.get_upper_vis_bands()
+            elif input_info == "upper_vis_ex_props":
+                the_list = Evaluator.get_upper_vis_bands()
+                the_list.remove("som")
+                return the_list
+            elif input_info == "upper_vis_props":
+                return Evaluator.get_soil_props_upper_vis()
+            elif input_info == "upper_vis_props_ex_som":
+                the_list = Evaluator.get_soil_props_upper_vis()
+                the_list.remove("som")
+                return the_list
+            elif input_info == "bands":
+                return Evaluator.get_bands()
+            elif input_info == "all":
+                return Evaluator.get_sperset()
+
+        elif type(input_info) == list:
+            return input_info
+
+    @staticmethod
+    def get_vis_bands():
+        return ["B02", "B03", "B04"]
+
+    @staticmethod
+    def get_upper_vis_bands():
+        return ["B05", "B06", "B07", "B08", "B8A", "B09", "B11", "B12"]
+
+    @staticmethod
+    def get_soil_props_upper_vis():
+        return Evaluator.get_soil_props() + Evaluator.get_upper_vis_bands()
+
+    @staticmethod
+    def get_soil_props():
+        return ["elevation", "moisture", "temp", "som"]
+
+    @staticmethod
+    def get_soil_props_vis():
+        return Evaluator.get_soil_props() + Evaluator.get_vis_bands()
+
+    @staticmethod
+    def get_all_input():
+        return Evaluator.get_bands() + Evaluator.get_soil_props()
+
+    @staticmethod
+    def get_sperset():
+        return Evaluator.get_all_input()
+
+    @staticmethod
+    def get_all_except_output(the_output):
+        superset = Evaluator.get_sperset()
+        superset.remove(the_output)
+        return superset
 
 if __name__ == "__main__":
-    PROCESS_FIRST = False
-    if PROCESS_FIRST:
-        extract_s2.process()
     #configs = ["vis","props","vis-props","bands","upper-vis", "upper-vis-props","all"]
-    configs = ["vis","props","vis-props","bands","all"]
+    configs = ["vis","props","vis_props","bands","all"]
     c = Evaluator(configs=configs, algorithms=["mlr","ann"],prefix="both",folds=3)
     c.process()

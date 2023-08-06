@@ -1,0 +1,7 @@
+data
+-   processed
+        -dir_hash
+            -clipped
+            -complete.csv
+            -[ag.csv]
+            -ml.csv
