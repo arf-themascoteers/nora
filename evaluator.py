@@ -39,9 +39,6 @@ class Evaluator:
         self.sync_details_file()
         self.create_log_file()
 
-
-        #self.summary_text_columns = ["config", "input", "output", "text", "scene"]
-
     @staticmethod
     def get_input_name(config):
         inp = config["input"]
@@ -92,7 +89,8 @@ class Evaluator:
         df.insert(1,"input",pd.Series(["-".join(c["input"]) for c in self.config_list]))
         df.insert(2,"output",pd.Series([c["output"] for c in self.config_list]))
         df.insert(3,"ag",pd.Series([c["ag"] for c in self.config_list]))
-        df.insert(4,"scene",pd.Series([c["scene"] for c in self.config_list]))
+        df.insert(4,"scenes",pd.Series([c["scenes"] for c in self.config_list]))
+        df.insert(5,"scenes_string",pd.Series([c for c in self.scenes_strings]))
         df.to_csv(self.summary_file, index=False)
 
     def write_details(self):
@@ -114,6 +112,7 @@ class Evaluator:
         log_file.close()
 
     def process(self):
+        self.extract()
         for repeat_number in range(self.repeat):
             self.process_repeat(repeat_number)
 
@@ -144,9 +143,7 @@ class Evaluator:
     def process_config(self, repeat_number, index_algorithm, index_config):
         algorithm = self.algorithms[index_algorithm]
         config = self.config_list[index_config]
-        s2e = S2Extractor(config["ag"])
-        csv, scenes = s2e.process()
-        ds = ds_manager.DSManager(csv, folds=self.folds, x=config["input"], y=config["output"])
+        ds = ds_manager.DSManager(self.csvs[index_config], folds=self.folds, x=config["input"], y=config["output"])
         for fold_number, (train_ds, test_ds) in enumerate(ds.get_k_folds()):
             score = self.get_details(index_algorithm, repeat_number, fold_number, index_config)
             if score != 0:
@@ -201,13 +198,13 @@ class Evaluator:
 
     @staticmethod
     def create_config_object(config):
-        config_object = {"input":[],"output":"som","ag":"low","scene":0,"name":None}
+        config_object = {"input":[],"output":"som","ag":"low","scenes":0,"name":None}
         if isinstance(config,str) or type(config) == list:
             config_object["input"] = Evaluator.get_columns_by_input_info(config)
         else:
             if isinstance(config["input"], str):
                 config_object["input"] = Evaluator.get_columns_by_input_info(config["input"])
-            for a_prop in ["output","ag","scene","name"]:
+            for a_prop in ["output","ag","scenes","name"]:
                 if a_prop in config:
                     config_object[a_prop] = config[a_prop]
 
@@ -219,7 +216,7 @@ class Evaluator:
             ag_name = "None"
             if config_object["ag"] is not None:
                 ag_name = config_object["ag"]
-            config_object["name"] = f"{config_object['name']}_{ag_name}_{config_object['scene']}"
+            config_object["name"] = f"{config_object['name']}_{ag_name}_{config_object['scenes']}"
 
         return config_object
 
@@ -313,11 +310,27 @@ class Evaluator:
                 cols.append(f"{repeat}-{fold}")
         return cols
 
+    def extract(self):
+        self.scenes_strings = []
+        self.csvs = []
+        for config in self.config_list:
+            s2 = S2Extractor(ag=config["ag"], scenes=config["scenes"])
+            csv, scenes_string = s2.process()
+            self.csvs.append(csv)
+            self.scenes_strings.append(scenes_string)
+
 
 if __name__ == "__main__":
     #configs = ["vis","props","vis-props","bands","upper-vis", "upper-vis-props","all"]
     # configs = ["vis","props","vis_props","bands","all"]
     # c = Evaluator(configs=configs, algorithms=["mlr","ann"],prefix="both",folds=3)
-    configs = ["vis"]
+    #configs = ["vis"]
+    configs = [
+        {
+            "input":["B02"],
+            "ag": "low",
+            "scenes": ["S2A_MSIL2A_20220207T002711_N0400_R016_T54HWE_20220207T023040"]
+        }
+    ]
     c = Evaluator(configs=configs, algorithms=["mlr"],prefix="vismlr",folds=2)
     c.process()

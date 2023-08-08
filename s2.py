@@ -3,32 +3,30 @@ import pandas as pd
 import numpy as np
 import hashlib
 from clipper import Clipper
-import shutil
 import rasterio
 from rasterio.warp import transform
 from rasterio.crs import CRS
 from rasterio.windows import Window
 from datetime import datetime
-from aggregate import aggregate
 import re
 from sklearn.preprocessing import MinMaxScaler
 
 
 class S2Extractor:
-    def __init__(self, ag="low", scene=0):
+    def __init__(self, ag="low", scenes=0):
         self.FILTERED = True
         self.SENTINEL_2_HOME = r"D:\Data\Tim\Created\Vectis\Sentinel-2"
         self.ag = ag
 
-        if type(scene) == list:
-            self.scene_list = scene
+        if type(scenes) == list:
+            self.scene_list = scenes
         else:
             self.scene_list = os.listdir(self.SENTINEL_2_HOME)
             self.scene_list = [scene for scene in self.scene_list if scene.startswith("S2")
                                and os.path.isdir(os.path.join(self.SENTINEL_2_HOME, scene))]
-            if scene == 0:
-                scene = len(self.scene_list)
-            self.scene_list = self.scene_list[0:scene]
+            if scenes == 0:
+                scenes = len(self.scene_list)
+            self.scene_list = self.scene_list[0:scenes]
         self.scene_list = sorted(self.scene_list)
         self.log_file_path = os.path.join("data","log.txt")
         self.log_file = open(self.log_file_path, "w")
@@ -53,7 +51,7 @@ class S2Extractor:
         if ag is not None:
             self.ag_str = ag
 
-        self.scenes_str = ":".join(self.scene_list)
+        self.scenes_str = S2Extractor.create_scenes_string(self.scene_list)
         self.dir_str_original = self.ag_str + "_"+self.scenes_str
         self.dir_hash =  hashlib.md5(self.dir_str_original.encode('UTF-8')).hexdigest()
         self.dir_hash_path = os.path.join(processed_dir, self.dir_hash)
@@ -73,12 +71,12 @@ class S2Extractor:
         row = self.read_dataset_list_file(dirname, ag, scenes)
         if row is not None:
             return
-        if not os.path.exists(self.datasets_list_file_path):
+        if os.path.exists(self.datasets_list_file_path):
             df = pd.read_csv(self.datasets_list_file_path)
             df.loc[len(df)] = [dirname,ag,scenes]
             df.columns = ["dirname", "ag", "scenes"]
         else:
-            df = pd.DataFrame(data=[dirname,ag,scenes], columns=["dirname", "ag", "scenes"])
+            df = pd.DataFrame(data=[[dirname,ag,scenes]], columns=["dirname", "ag", "scenes"])
         df.to_csv(self.datasets_list_file_path, index=False)
 
     def read_dataset_list_file(self, dirname, ag, scenes):
@@ -204,7 +202,7 @@ class S2Extractor:
             column_index = band_index_start + column_offset
             for i in range(len(table)):
                 if i!=0 and i%1000 == 0:
-                    print(f"Done {i+1} ({table.shape[0]}) of {column_index+1} ({table.shape[1]})")
+                    print(f"Done {i+1} ({table.shape[0]}) of {column_offset+1} ({len(bands)})")
                 lon = table[i, 0]
                 lat = table[i, 1]
                 row, column = self.get_row_col_by_lon_lat(epsg, src, lon, lat)
@@ -215,41 +213,70 @@ class S2Extractor:
 
         return table, all_columns
 
-    def process(self):
-        if os.path.exists(self.dir_hash_path):
-            return self.ml_csv_path, self.scene_list
+    @staticmethod
+    def create_scenes_string(scenes):
+        return ":".join(scenes)
+
+    def get_scene_source(self, scene):
+        scene_path = os.path.join(self.SENTINEL_2_HOME, scene)
+        return S2Extractor.get_base(scene_path)
+
+    def get_scene_clip_folder_path(self, scene):
+        return os.path.join(self.clip_path, scene)
+
+    def create_clips(self):
         os.mkdir(self.dir_hash_path)
         os.mkdir(self.clip_path)
-        df = None
-        scene_serial = 0
-        for scene in self.scene_list:
-            scene_path = os.path.join(self.SENTINEL_2_HOME, scene)
-            base = S2Extractor.get_base(scene_path)
-            dest_clipped_scene_folder_path = os.path.join(self.clip_path, scene)
+        for index, scene in enumerate(self.scene_list):
+            dest_clipped_scene_folder_path = self.get_scene_clip_folder_path(scene)
             os.mkdir(dest_clipped_scene_folder_path)
+            base = self.get_scene_source(scene)
             self.clip_bands(base, dest_clipped_scene_folder_path)
-            scene_serial = scene_serial + 1
-            table, columns = self.create_table(dest_clipped_scene_folder_path, scene_serial)
+            print(f"Done clipping scene {index+1}: {scene}")
+            self.log_file.write(f"{index+1},{scene}\n")
+
+    def get_df_from_scenes(self):
+        self.create_clips()
+        df = None
+        for index, scene in enumerate(self.scene_list):
+            dest_clipped_scene_folder_path = self.get_scene_clip_folder_path(scene)
+            table, columns = self.create_table(dest_clipped_scene_folder_path, index+1)
             current_df = pd.DataFrame(data=table, columns=columns)
             if df is None:
                 df = current_df
             else:
                 df = pd.concat([df, current_df])
-            print(f"Done scene {scene_serial}: {scene}")
-            self.log_file.write(f"{scene_serial},{scene}\n")
+            print(f"Done scene {index+1}: {scene}")
+            self.log_file.write(f"{index+1},{scene}\n")
 
+        return df
+
+    def aggregate(self):
+        df = pd.read_csv(self.dest_csv_path)
+        df.drop(columns=["lon","lat","when"], axis=1, inplace=True)
+        columns_to_agg = df.columns.drop(["row", "column","scene"])
+        if self.ag is not None:
+            df = df.groupby(["row","column","scene"])[columns_to_agg].mean().reset_index()
+        df.to_csv(self.ag_csv_path, index=False)
+
+    def create_ml_ready_csv_from_df(self, df):
         df.to_csv(self.dest_csv_path, index=False)
-        ml_source = self.dest_csv_path
         if self.ag:
-            aggregate(self.dest_csv_path, self.ag_csv_path)
-            ml_source = self.ag_csv_path
-        self.make_ml_ready(ml_source, self.ml_csv_path)
+            self.aggregate()
+        self.make_ml_ready()
         self.log_file.close()
         self.write_dataset_list_file(self.dir_hash, self.ag_str, self.scenes_str)
+
+    def process(self):
+        if os.path.exists(self.dir_hash_path):
+            print(f"Dir exists for {self.dir_str_original} - ({self.dir_hash_path}). Skipping.")
+            return self.ml_csv_path, self.scene_list
+        df = self.get_df_from_scenes()
+        self.create_ml_ready_csv_from_df(df)
         return self.ml_csv_path, self.scene_list
 
-    def make_ml_ready(self, source, ml_csv_path):
-        df = pd.read_csv(source)
+    def make_ml_ready(self):
+        df = pd.read_csv(self.ag_csv_path)
         df.drop(inplace=True, columns=["row", "column", "scene"], axis=1)
         for col in ["lon", "lat", "when"]:
             if col in df.columns:
@@ -260,7 +287,7 @@ class S2Extractor:
             x_scaled = scaler.fit_transform(data[:, i].reshape(-1, 1))
             data[:, i] = np.squeeze(x_scaled)
         df = pd.DataFrame(data=data, columns=df.columns)
-        df.to_csv(ml_csv_path, index=False)
+        df.to_csv(self.ml_csv_path, index=False)
 
     def get_epsg(self):
         return CRS.from_epsg(4326)
