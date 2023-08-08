@@ -144,9 +144,9 @@ class Evaluator:
     def process_config(self, repeat_number, index_algorithm, index_config):
         algorithm = self.algorithms[index_algorithm]
         config = self.config_list[index_config]
-        s2e = S2Extractor()
+        s2e = S2Extractor(config["ag"])
         csv, scenes = s2e.process()
-        ds = ds_manager.DSManager(self.csv, folds=self.folds, x=config["input"], y=config["output"])
+        ds = ds_manager.DSManager(csv, folds=self.folds, x=config["input"], y=config["output"])
         for fold_number, (train_ds, test_ds) in enumerate(ds.get_k_folds()):
             score = self.get_details(index_algorithm, repeat_number, fold_number, index_config)
             if score != 0:
@@ -201,13 +201,13 @@ class Evaluator:
 
     @staticmethod
     def create_config_object(config):
-        config_object = {"input":[],"output":"som","ag":"low","scene":0,"force_create":False,"name":None}
+        config_object = {"input":[],"output":"som","ag":"low","scene":0,"name":None}
         if isinstance(config,str) or type(config) == list:
             config_object["input"] = Evaluator.get_columns_by_input_info(config)
         else:
             if isinstance(config["input"], str):
                 config_object["input"] = Evaluator.get_columns_by_input_info(config["input"])
-            for a_prop in ["output","ag","scene","force_create","name"]:
+            for a_prop in ["output","ag","scene","name"]:
                 if a_prop in config:
                     config_object[a_prop] = config[a_prop]
 
@@ -316,6 +316,8 @@ class Evaluator:
 
 if __name__ == "__main__":
     #configs = ["vis","props","vis-props","bands","upper-vis", "upper-vis-props","all"]
-    configs = ["vis","props","vis_props","bands","all"]
-    c = Evaluator(configs=configs, algorithms=["mlr","ann"],prefix="both",folds=3)
+    # configs = ["vis","props","vis_props","bands","all"]
+    # c = Evaluator(configs=configs, algorithms=["mlr","ann"],prefix="both",folds=3)
+    configs = ["vis"]
+    c = Evaluator(configs=configs, algorithms=["mlr"],prefix="vismlr",folds=2)
     c.process()

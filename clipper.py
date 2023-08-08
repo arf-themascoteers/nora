@@ -1,9 +1,9 @@
 import rasterio
-from get_bounding_box import get_bounding_box
 from rasterio.windows import Window
 from rasterio.warp import transform_bounds
 from rasterio.crs import CRS
 import math
+import pandas as pd
 
 
 class Clipper:
@@ -13,12 +13,24 @@ class Clipper:
         self.source_csv_path = source_csv_path
         self.PADDING = 20
 
-    def clip(self):
-        min_x, min_y, max_x, max_y = get_bounding_box(source_csv_path)
-        with rasterio.open(source) as src:
-            epsg_4326 = CRS.from_epsg(4326)
-            min_x, min_y, max_x, max_y = transform_bounds(epsg_4326, src.crs, min_x, max_y, max_x, min_y)
+    def get_bounding_box(self, source_csv_path):
+        PADDING = 0
+        vpd = pd.read_csv(source_csv_path)
+        min_x = vpd["lon"].min()
+        max_x = vpd["lon"].max()
+        min_y = vpd["lat"].max()
+        max_y = vpd["lat"].min()
+        min_x = min_x - PADDING
+        max_x = max_x + PADDING
+        min_y = min_y + PADDING
+        max_y = max_y - PADDING
+        return min_x, min_y, max_x, max_y
 
+    def clip(self):
+        min_x, min_y, max_x, max_y = self.get_bounding_box(self.source_csv_path)
+        epsg_4326 = CRS.from_epsg(4326)
+        with rasterio.open(self.source) as src:
+            min_x, min_y, max_x, max_y = transform_bounds(epsg_4326, src.crs, min_x, max_y, max_x, min_y)
             (column, row) = (~src.transform) * (min_x, max_y)
             row = math.floor(row)
             column = math.floor(column)
@@ -35,9 +47,6 @@ class Clipper:
 
             height = row_max - row
             width = column_max - column
-
-
-
             #window = src.window(min_x, min_y, max_x, max_y)
             window = Window(column, row, width, height)
 
@@ -49,8 +58,9 @@ class Clipper:
                 'transform': rasterio.windows.transform(window, src.transform),
                 'nodata': None
             })
-            with rasterio.open(dest, 'w', **profile) as dst:
+            with rasterio.open(self.dest, 'w', **profile) as dst:
                 dst.write(data)
+
 
 if __name__ == "__main__":
     source = r"D:\Data\Tim\Created\Vectis\Sentinel-2\S2B_MSIL2A_20220503T002659_N0400_R016_T54HXE_20220503T023159\S2B_MSIL2A_20220503T002659_N0400_R016_T54HXE_20220503T023159.SAFE\GRANULE\L2A_T54HXE_A026926_20220503T003625\IMG_DATA\R60m\T54HXE_20220503T002659_TCI_60m.jp2"

@@ -2,7 +2,6 @@ import os
 import pandas as pd
 import numpy as np
 import hashlib
-import shorten
 from clipper import Clipper
 import shutil
 import rasterio
@@ -10,7 +9,6 @@ from rasterio.warp import transform
 from rasterio.crs import CRS
 from rasterio.windows import Window
 from datetime import datetime
-from shorten import shorten
 from aggregate import aggregate
 import re
 from sklearn.preprocessing import MinMaxScaler
@@ -19,7 +17,7 @@ from sklearn.preprocessing import MinMaxScaler
 class S2Extractor:
     def __init__(self, ag="low", scene=0):
         self.FILTERED = True
-        self.SENTINEL_2_HOME = r"C:\data"
+        self.SENTINEL_2_HOME = r"D:\Data\Tim\Created\Vectis\Sentinel-2"
         self.ag = ag
 
         if type(scene) == list:
@@ -35,69 +33,62 @@ class S2Extractor:
         self.log_file_path = os.path.join("data","log.txt")
         self.log_file = open(self.log_file_path, "w")
         self.source_csv = "vectis.csv"
-
+        self.source_csv_path = os.path.join("data", self.source_csv)
         self.datasets_list_file = "datasets.csv"
 
         if self.FILTERED:
             short_csv = "shorter.csv"
             short_csv_path = os.path.join("data", short_csv)
-            shorten(short_csv_path, short_csv_path)
-            self.source_csv = short_csv
-
-        self.source_csv_path = os.path.join("data", self.source_csv)
+            S2Extractor.shorten(self.source_csv_path, short_csv_path)
+            self.source_csv_path = short_csv_path
 
         processed_dir = "processed"
         self.processed_dir_path = os.path.join("data", processed_dir)
+        self.datasets_list_file_path = os.path.join(self.processed_dir_path,"datasets.csv")
 
         if not os.path.exists(self.processed_dir_path):
             os.mkdir(self.processed_dir_path)
 
-        ag_str = "no_ag"
+        self.ag_str = "no_ag"
         if ag is not None:
-            ag_str = ag
+            self.ag_str = ag
 
-        scenes = ":".join(self.scene_list)
-        dir_str_original = ag_str + scenes
-        self.dir_hash =  hashlib.md5(dir_str_original.encode('UTF-8'))
-        self.dir_hash_path = os.path.join(processed_dir)
-
-        self.do_clip = False
-
-        if not os.path.exists(self.dir_hash_path):
-            self.do_clip = True
-            os.mkdir(self.dir_hash_path)
-            self.write_dataset_list_file(self.dir_hash, ag_str, scenes)
-
+        self.scenes_str = ":".join(self.scene_list)
+        self.dir_str_original = self.ag_str + "_"+self.scenes_str
+        self.dir_hash =  hashlib.md5(self.dir_str_original.encode('UTF-8')).hexdigest()
+        self.dir_hash_path = os.path.join(processed_dir, self.dir_hash)
         self.clip_path = os.path.join(self.dir_hash_path, "clipped")
         self.dest_csv_path = os.path.join(self.dir_hash_path, "complete.csv")
         self.ag_csv_path = os.path.join(self.dir_hash_path, "ag.csv")
         self.ml_csv_path = os.path.join(self.dir_hash_path, "ml.csv")
 
-        self.do_process = True
-
-        if os.path.exists(self.clip_path):
-            self.do_process = False
-        else:
-            os.mkdir(self.clip_path)
+    @staticmethod
+    def shorten(orig, short):
+        df = pd.read_csv(orig)
+        df = df[df["som"] > 1.72]
+        df = df[df["som"] < 3.29]
+        df.to_csv(short, index=False)
 
     def write_dataset_list_file(self, dirname, ag, scenes):
         row = self.read_dataset_list_file(dirname, ag, scenes)
-        if len(row) != 0:
+        if row is not None:
             return
-        datasets_list_path = os.path.join(self.processed_dir_path, self.datasets_list_file)
-        df = pd.read_csv(datasets_list_path)
-        df.loc[len(df)] = [dirname,ag,scenes]
-        df.columns = ["dirname", "ag", "scenes"]
-        df.to_csv(datasets_list_path, index=False)
+        if not os.path.exists(self.datasets_list_file_path):
+            df = pd.read_csv(self.datasets_list_file_path)
+            df.loc[len(df)] = [dirname,ag,scenes]
+            df.columns = ["dirname", "ag", "scenes"]
+        else:
+            df = pd.DataFrame(data=[dirname,ag,scenes], columns=["dirname", "ag", "scenes"])
+        df.to_csv(self.datasets_list_file_path, index=False)
 
     def read_dataset_list_file(self, dirname, ag, scenes):
-        datasets_list_path = os.path.join(self.processed_dir_path, self.datasets_list_file)
-
-        if not os.path.exists(datasets_list_path):
+        if not os.path.exists(self.datasets_list_file_path):
             return None
 
-        df = pd.read_csv(datasets_list_path)
+        df = pd.read_csv(self.datasets_list_file_path)
         df = df[((df['dirname'] == dirname) & (df['ag'] == ag) & (df['scenes'] == scenes))]
+        if len(df) == 0:
+            return None
         return df.iloc[0]
 
     @staticmethod
@@ -213,7 +204,7 @@ class S2Extractor:
             column_index = band_index_start + column_offset
             for i in range(len(table)):
                 if i!=0 and i%1000 == 0:
-                    print(f"Done {i+1} ({table.shape[0]}) of {band_index_start+1} ({table.shape[1]})")
+                    print(f"Done {i+1} ({table.shape[0]}) of {column_index+1} ({table.shape[1]})")
                 lon = table[i, 0]
                 lat = table[i, 1]
                 row, column = self.get_row_col_by_lon_lat(epsg, src, lon, lat)
@@ -225,8 +216,10 @@ class S2Extractor:
         return table, all_columns
 
     def process(self):
-        if self.do_process:
+        if os.path.exists(self.dir_hash_path):
             return self.ml_csv_path, self.scene_list
+        os.mkdir(self.dir_hash_path)
+        os.mkdir(self.clip_path)
         df = None
         scene_serial = 0
         for scene in self.scene_list:
@@ -252,6 +245,7 @@ class S2Extractor:
             ml_source = self.ag_csv_path
         self.make_ml_ready(ml_source, self.ml_csv_path)
         self.log_file.close()
+        self.write_dataset_list_file(self.dir_hash, self.ag_str, self.scenes_str)
         return self.ml_csv_path, self.scene_list
 
     def make_ml_ready(self, source, ml_csv_path):
