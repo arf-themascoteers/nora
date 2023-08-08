@@ -10,6 +10,7 @@ from sklearn.cross_decomposition import PLSRegression
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.svm import SVR
 from s2 import S2Extractor
+from reporter import Reporter
 
 
 class Evaluator:
@@ -24,23 +25,24 @@ class Evaluator:
         if self.algorithms is None:
             self.algorithms = ["mlr", "plsr", "rf", "svr"]#, "ann", "cnn", "transformer", "lstm"]
 
-        self.details_text_columns = ["algorithm", "config"]
-
-        self.summary_file = f"results/{prefix}_summary.csv"
-        self.details_file = f"results/{prefix}_details.csv"
-        self.log_file = f"results/{prefix}_log.txt"
-
-        self.details = np.zeros(( len(self.algorithms) * len(configs), self.repeat*self.folds))
-
         self.config_list = []
-        for config in configs:
-            self.config_list.append(Evaluator.create_config_object(config))
-
-        self.sync_details_file()
-        self.create_log_file()
-
-        self.scenes = []
         self.csvs = []
+        self.scenes = []
+        scenes_count = []
+        scenes_string = []
+
+        for config in configs:
+            config_object = Evaluator.create_config_object(config)
+            self.config_list.append(config_object)
+            s2 = S2Extractor(ag=config_object["ag"], scenes=config_object["scenes"])
+            csv, scenes = s2.process()
+            self.csvs.append(csv)
+            self.scenes.append(scenes)
+            scenes_count.append(len(scenes))
+            scenes_string.append(scenes)
+
+        self.reporter = Reporter(prefix, self.config_list, scenes_count, scenes_string,
+                                 algorithms, self.repeat, self.folds)
 
     @staticmethod
     def get_input_name(config):
@@ -49,88 +51,9 @@ class Evaluator:
             return inp[0]
         return f"{inp[0]}+{len(inp)-1}"
 
-    def get_details_alg_conf(self):
-        details_alg_conf = []
-        for i in self.algorithms:
-            for j in self.config_list:
-                details_alg_conf.append((i,j["name"]))
-        return details_alg_conf
-
-    def get_details_row(self, index_algorithm, index_config):
-        return index_algorithm*len(self.config_list) + index_config
-
-    def get_details_column(self, repeat_number, fold_number):
-        return repeat_number*self.folds + fold_number
-
-    def set_details(self, index_algorithm, repeat_number, fold_number, index_config, score):
-        details_row = self.get_details_row(index_algorithm, index_config)
-        details_column = self.get_details_column(repeat_number, fold_number)
-        self.details[details_row,details_column] = score
-
-    def get_details(self, index_algorithm, repeat_number, fold_number, index_config):
-        details_row = self.get_details_row(index_algorithm, index_config)
-        details_column = self.get_details_column(repeat_number, fold_number)
-        return self.details[details_row,details_column]
-
-    def sync_details_file(self):
-        if not os.path.exists(self.details_file):
-            self.write_details()
-        df = pd.read_csv(self.details_file)
-        df.drop(columns=self.details_text_columns, axis=1, inplace=True)
-        self.details = df.to_numpy()
-
-    def create_log_file(self):
-        log_file = open(self.log_file, "a")
-        log_file.write("\n")
-        log_file.write(str(datetime.now()))
-        log_file.write("\n==============================\n")
-        log_file.close()
-
-    def write_summary(self, summary):
-        df = pd.DataFrame(data=summary, columns=self.algorithms)
-        df.insert(0,"config",pd.Series([c["name"] for c in self.config_list]))
-        df.insert(len(df.columns),"input",pd.Series(["-".join(c["input"]) for c in self.config_list]))
-        df.insert(len(df.columns),"output",pd.Series([c["output"] for c in self.config_list]))
-        df.insert(len(df.columns),"ag",pd.Series([c["ag"] for c in self.config_list]))
-        df.insert(len(df.columns),"scenes",pd.Series([len(c) for c in self.scenes]))
-        df.insert(len(df.columns),"scenes_string",pd.Series([S2Extractor.create_scenes_string(c) for c in self.scenes]))
-        df.to_csv(self.summary_file, index=False)
-
-    def write_details(self):
-        df = pd.DataFrame(data=self.details, columns=self.get_details_columns())
-        details_alg_conf = self.get_details_alg_conf()
-        algs = [i[0] for i in details_alg_conf]
-        confs = [i[1] for i in details_alg_conf]
-
-        df.insert(0,"algorithm",pd.Series(algs))
-        df.insert(len(df.columns),"config",pd.Series(confs))
-
-        df.to_csv(self.details_file, index=False)
-
-    def log_scores(self, repeat_number, fold_number, algorithm, config, score):
-        log_file = open(self.log_file, "a")
-        log_file.write(f"\n{repeat_number} - {fold_number} - {algorithm} - {config}\n")
-        log_file.write(str(score))
-        log_file.write("\n")
-        log_file.close()
-
     def process(self):
-        self.extract()
         for repeat_number in range(self.repeat):
             self.process_repeat(repeat_number)
-
-    def update_summary(self):
-        score_mean = np.zeros((len(self.config_list),len(self.algorithms)))
-        for index_config in range(len(self.config_list)):
-            for index_algorithm in range(len(self.algorithms)):
-                details_row = self.get_details_row(index_algorithm, index_config)
-                detail_cells = self.details[details_row, :]
-                detail_cells = detail_cells[detail_cells != 0]
-                if len(detail_cells) == 0:
-                    score_mean[index_config, index_algorithm] = 0
-                else:
-                    score_mean[index_config, index_algorithm] = np.mean(detail_cells)
-        self.write_summary(score_mean)
 
     def process_repeat(self, repeat_number):
         for index_algorithm, algorithm in enumerate(self.algorithms):
@@ -148,19 +71,19 @@ class Evaluator:
         config = self.config_list[index_config]
         ds = ds_manager.DSManager(self.csvs[index_config], folds=self.folds, x=config["input"], y=config["output"])
         for fold_number, (train_ds, test_ds) in enumerate(ds.get_k_folds()):
-            score = self.get_details(index_algorithm, repeat_number, fold_number, index_config)
+            score = self.reporter.get_details(index_algorithm, repeat_number, fold_number, index_config)
             if score != 0:
                 print(f"{repeat_number}-{fold_number} done already")
                 continue
             else:
                 print("Start", f"{config}",f"{repeat_number}-{fold_number}")
                 score = self.calculate_score(train_ds, test_ds, algorithm)
-                self.log_scores(repeat_number, fold_number, algorithm, config, score)
+                self.reporter.log_scores(repeat_number, fold_number, algorithm, config, score)
             if self.verbose:
                 print(f"{score}")
-            self.set_details(index_algorithm, repeat_number, fold_number, index_config, score)
-            self.write_details()
-            self.update_summary()
+            self.reporter.set_details(index_algorithm, repeat_number, fold_number, index_config, score)
+            self.reporter.write_details()
+            self.reporter.update_summary()
 
     def calculate_score(self, train_ds, test_ds, algorithm):
         if self.TEST:
@@ -307,20 +230,6 @@ class Evaluator:
         superset = Evaluator.get_superset()
         superset.remove("som")
         return superset
-
-    def get_details_columns(self):
-        cols = []
-        for repeat in range(1,self.repeat+1):
-            for fold in range(1,self.folds+1):
-                cols.append(f"I-{repeat}-{fold}")
-        return cols
-
-    def extract(self):
-        for config in self.config_list:
-            s2 = S2Extractor(ag=config["ag"], scenes=config["scenes"])
-            csv, scenes = s2.process()
-            self.csvs.append(csv)
-            self.scenes.append(scenes)
 
 
 if __name__ == "__main__":
