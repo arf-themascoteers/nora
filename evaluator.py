@@ -269,7 +269,7 @@ class Evaluator:
             elif input_info == "bands":
                 return Evaluator.get_bands()
             elif input_info == "all":
-                return Evaluator.get_superset()
+                return Evaluator.get_all_except_output()
 
         elif type(input_info) == list:
             return input_info
