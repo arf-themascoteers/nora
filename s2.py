@@ -240,7 +240,7 @@ class S2Extractor:
             self.log_file.write(f"{index+1},{scene}\n")
 
     def get_df_from_scenes(self):
-        #self.create_clips()
+        self.create_clips()
         df = None
         for index, scene in enumerate(self.scene_list):
             dest_clipped_scene_folder_path = self.get_scene_clip_folder_path(scene)

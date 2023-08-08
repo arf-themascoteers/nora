@@ -324,16 +324,15 @@ class Evaluator:
 
 if __name__ == "__main__":
     #configs = ["vis","props","vis-props","bands","upper-vis", "upper-vis-props","all"]
-    # configs = ["vis","props","vis_props","bands","all"]
-    # c = Evaluator(configs=configs, algorithms=["mlr","ann"],prefix="both",folds=3)
-    #configs = ["vis"]
-    configs = [
-        {
-            "input":["B02","B03"],
-            "ag": "low",
-            "scenes": ["S2A_MSIL2A_20220207T002711_N0400_R016_T54HWE_20220207T023040"],
-            "name" : "shamsu"
-        }
-    ]
-    c = Evaluator(configs=configs, algorithms=["mlr"],prefix="vismlr",folds=2)
+    configs = ["vis","props","vis_props","bands","all"]
+    c = Evaluator(configs=configs, algorithms=["mlr","ann"],prefix="both",folds=3)
     c.process()
+    # configs = ["vis"]
+    # configs = [
+    #     {
+    #         "input":["B02","B03"],
+    #         "ag": "low",
+    #         "scenes": ["S2A_MSIL2A_20220207T002711_N0400_R016_T54HWE_20220207T023040"],
+    #         "name" : "shamsu"
+    #     }
+    # ]
