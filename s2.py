@@ -11,11 +11,12 @@ from datetime import datetime
 import re
 from sklearn.preprocessing import MinMaxScaler
 from base_path import BASE_PATH
+from environment import TEST
 
 
 class S2Extractor:
     def __init__(self, ag="low", scenes=0):
-        self.TEST = False
+        self.TEST = TEST
         self.FILTERED = True
         self.SENTINEL_2_HOME = BASE_PATH
         self.ag = ag
