@@ -60,6 +60,9 @@ class S2Extractor:
         self.ag_csv_path = os.path.join(self.dir_hash_path, "ag.csv")
         self.ml_csv_path = os.path.join(self.dir_hash_path, "ml.csv")
 
+        self.spatial_columns = ["scene","row","column"]
+        self.geo_columns = ["lon", "lat", "when"]
+
     @staticmethod
     def shorten(orig, short):
         df = pd.read_csv(orig)
@@ -166,9 +169,9 @@ class S2Extractor:
 
     def populate_scene_info(self, table, dest_clipped_scene_folder_path, start_index, scene_serial):
         epsg = self.get_epsg()
-        ROW_INDEX = start_index
-        COLUMN_INDEX = start_index + 1
-        SCENE_INDEX = start_index + 2
+        SCENE_INDEX = start_index
+        ROW_INDEX = start_index + 1
+        COLUMN_INDEX = start_index + 2
         for i in range(len(table)):
             table[i, SCENE_INDEX] = scene_serial
         res = dict([(band, src.height * src.width) for band, src in self.iterate_bands(dest_clipped_scene_folder_path)])
@@ -182,6 +185,8 @@ class S2Extractor:
             row, column = self.get_row_col_by_lon_lat(epsg, src, lon, lat)
             table[i, ROW_INDEX] = row
             table[i, COLUMN_INDEX] = column
+            if i != 0 and i % 1000 == 0:
+                print(f"Done populating spatial {i + 1} of {table.shape[0]} for scene {scene_serial}")
 
         return table
 
@@ -195,14 +200,14 @@ class S2Extractor:
         table = np.zeros((len(df), len(all_columns)))
         data = df.to_numpy()
         table[:,0:data.shape[1]] = data[:,0:data.shape[1]]
-        spatial_info_column_count = len(df.columns)
-        band_index_start = spatial_info_column_count + len(spatial_info)
-        self.populate_scene_info(table, dest_clipped_scene_folder_path, scene_serial)
+        spatial_info_column_start = len(df.columns)
+        band_index_start = spatial_info_column_start + len(spatial_info)
+        self.populate_scene_info(table, dest_clipped_scene_folder_path, spatial_info_column_start, scene_serial)
         for column_offset, (band, src) in enumerate(self.iterate_bands(dest_clipped_scene_folder_path)):
             column_index = band_index_start + column_offset
             for i in range(len(table)):
                 if i!=0 and i%1000 == 0:
-                    print(f"Done {i+1} ({table.shape[0]}) of {column_offset+1} ({len(bands)})")
+                    print(f"Done band processing {i+1} ({table.shape[0]}) of band {column_offset+1} ({len(bands)})")
                 lon = table[i, 0]
                 lat = table[i, 1]
                 row, column = self.get_row_col_by_lon_lat(epsg, src, lon, lat)
@@ -248,15 +253,15 @@ class S2Extractor:
                 df = pd.concat([df, current_df])
             print(f"Done scene {index+1}: {scene}")
             self.log_file.write(f"{index+1},{scene}\n")
-
+        df.sort_values(self.spatial_columns)
         return df
 
     def aggregate(self):
         df = pd.read_csv(self.dest_csv_path)
-        df.drop(columns=["lon","lat","when"], axis=1, inplace=True)
-        columns_to_agg = df.columns.drop(["row", "column","scene"])
+        df.drop(columns=self.geo_columns, axis=1, inplace=True)
+        columns_to_agg = df.columns.drop(self.spatial_columns)
         if self.ag is not None:
-            df = df.groupby(["row","column","scene"])[columns_to_agg].mean().reset_index()
+            df = df.groupby()[columns_to_agg].mean().reset_index()
         df.to_csv(self.ag_csv_path, index=False)
 
     def create_ml_ready_csv_from_df(self, df):
@@ -277,8 +282,8 @@ class S2Extractor:
 
     def make_ml_ready(self):
         df = pd.read_csv(self.ag_csv_path)
-        df.drop(inplace=True, columns=["row", "column", "scene"], axis=1)
-        for col in ["lon", "lat", "when"]:
+        df.drop(inplace=True, columns=self.spatial_columns, axis=1)
+        for col in self.geo_columns:
             if col in df.columns:
                 df.drop(inplace=True, columns=[col], axis=1)
         data = df.to_numpy()
