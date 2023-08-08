@@ -141,7 +141,7 @@ class S2Extractor:
             if band_part[0] != 'B':
                 continue
             bands.append(band_part)
-        bands = sorted(bands, key=lambda x: int(re.findall(r'\d+', x)[0]), reverse=self.is_reverve())
+        bands = sorted(bands, key=lambda x: int(re.findall(r'\d+', x)[0]))
 
         for band in bands:
             file_name = f"{band}.jp2"
