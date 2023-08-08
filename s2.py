@@ -30,7 +30,7 @@ class S2Extractor:
         self.scene_list = sorted(self.scene_list)
         self.log_file_path = os.path.join("data","log.txt")
         self.log_file = open(self.log_file_path, "w")
-        self.source_csv = "vectis_min.csv"
+        self.source_csv = "vectis.csv"
         self.source_csv_path = os.path.join("data", self.source_csv)
         self.datasets_list_file = "datasets.csv"
 
