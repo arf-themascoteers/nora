@@ -269,7 +269,7 @@ class Evaluator:
             elif input_info == "bands":
                 return Evaluator.get_bands()
             elif input_info == "all":
-                return Evaluator.get_sperset()
+                return Evaluator.get_superset()
 
         elif type(input_info) == list:
             return input_info
@@ -299,12 +299,12 @@ class Evaluator:
         return Evaluator.get_bands() + Evaluator.get_soil_props()
 
     @staticmethod
-    def get_sperset():
+    def get_superset():
         return Evaluator.get_all_input()
 
     @staticmethod
     def get_all_except_output(the_output):
-        superset = Evaluator.get_sperset()
+        superset = Evaluator.get_superset()
         superset.remove(the_output)
         return superset
 
@@ -325,7 +325,7 @@ class Evaluator:
 
 if __name__ == "__main__":
     # configs = ["vis","props","vis-props","bands","upper-vis", "upper-vis-props","all"]
-    configs = ["vis","props","vis_props","bands","all"]
+    configs = ["vis","props_ex_som","vis_props_ex_som","bands","all"]
     # configs = ["vis"]
     # configs = [
     #     {

@@ -15,6 +15,7 @@ from base_path import BASE_PATH
 
 class S2Extractor:
     def __init__(self, ag="low", scenes=0):
+        self.TEST = False
         self.FILTERED = True
         self.SENTINEL_2_HOME = BASE_PATH
         self.ag = ag
@@ -32,6 +33,8 @@ class S2Extractor:
         self.log_file_path = os.path.join("data","log.txt")
         self.log_file = open(self.log_file_path, "w")
         self.source_csv = "vectis.csv"
+        if self.TEST:
+            self.source_csv = "vectis_min.csv"
         self.source_csv_path = os.path.join("data", self.source_csv)
         self.datasets_list_file = "datasets.csv"
 
