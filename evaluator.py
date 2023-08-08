@@ -1,8 +1,4 @@
-import numpy as np
-import pandas as pd
 import ds_manager
-import os
-from datetime import datetime
 import torch
 from ann import ANN
 from sklearn.linear_model import LinearRegression
@@ -11,6 +7,7 @@ from sklearn.ensemble import RandomForestRegressor
 from sklearn.svm import SVR
 from s2 import S2Extractor
 from reporter import Reporter
+from translator import Translator
 
 
 class Evaluator:
@@ -43,13 +40,6 @@ class Evaluator:
 
         self.reporter = Reporter(prefix, self.config_list, scenes_count, scenes_string,
                                  algorithms, self.repeat, self.folds)
-
-    @staticmethod
-    def get_input_name(config):
-        inp = config["input"]
-        if len(inp) == 1:
-            return inp[0]
-        return f"{inp[0]}+{len(inp)-1}"
 
     def process(self):
         for repeat_number in range(self.repeat):
@@ -126,10 +116,10 @@ class Evaluator:
     def create_config_object(config):
         config_object = {"input":[],"output":"som","ag":"low","scenes":0,"name":None}
         if isinstance(config,str) or type(config) == list:
-            config_object["input"] = Evaluator.get_columns_by_input_info(config)
+            config_object["input"] = Translator.get_columns_by_input_info(config)
         else:
             if isinstance(config["input"], str):
-                config_object["input"] = Evaluator.get_columns_by_input_info(config["input"])
+                config_object["input"] = Translator.get_columns_by_input_info(config["input"])
             else:
                 config_object["input"] = config["input"]
             for a_prop in ["output","ag","scenes","name"]:
@@ -140,96 +130,13 @@ class Evaluator:
             if isinstance(config, str):
                 config_object["name"] = config
             else:
-                config_object["name"] = Evaluator.get_input_name(config)
+                config_object["name"] = Translator.get_input_name(config)
             ag_name = "None"
             if config_object["ag"] is not None:
                 ag_name = config_object["ag"]
             config_object["name"] = f"{config_object['name']}_{ag_name}_{config_object['scenes']}"
 
         return config_object
-
-    @staticmethod
-    def get_bands():
-        return ["B01", "B02", "B03", "B04", "B05", "B06", "B07", "B08", "B8A", "B09", "B11", "B12"]
-
-    @staticmethod
-    def get_columns_by_input_info(input_info):
-        if input_info is None:
-            input_info = "all_ex_som"
-
-        if isinstance(input_info, str):
-            if input_info == "vis":
-                return Evaluator.get_vis_bands()
-            elif input_info == "props":
-                return Evaluator.get_soil_props()
-            elif input_info == "props_ex_som":
-                the_list = Evaluator.get_soil_props()
-                the_list.remove("som")
-                return the_list
-            elif input_info.startswith("props_ex_prop_"):
-                the_list = Evaluator.get_soil_props()
-                the_prop = input_info[len("props_ex_prop_"):]
-                the_list.remove(the_prop)
-                return the_list
-            elif input_info == "vis_props":
-                return Evaluator.get_soil_props_vis()
-            elif input_info == "vis_props_ex_som":
-                the_list = Evaluator.get_soil_props_vis()
-                the_list.remove("som")
-                return the_list
-            elif input_info == "upper_vis":
-                return Evaluator.get_upper_vis_bands()
-            elif input_info == "upper_vis_ex_props":
-                the_list = Evaluator.get_upper_vis_bands()
-                the_list.remove("som")
-                return the_list
-            elif input_info == "upper_vis_props":
-                return Evaluator.get_soil_props_upper_vis()
-            elif input_info == "upper_vis_props_ex_som":
-                the_list = Evaluator.get_soil_props_upper_vis()
-                the_list.remove("som")
-                return the_list
-            elif input_info == "bands":
-                return Evaluator.get_bands()
-            elif input_info == "all_ex_som":
-                return Evaluator.get_all_ex_som()
-
-        elif type(input_info) == list:
-            return input_info
-
-    @staticmethod
-    def get_vis_bands():
-        return ["B02", "B03", "B04"]
-
-    @staticmethod
-    def get_upper_vis_bands():
-        return ["B05", "B06", "B07", "B08", "B8A", "B09", "B11", "B12"]
-
-    @staticmethod
-    def get_soil_props_upper_vis():
-        return Evaluator.get_soil_props() + Evaluator.get_upper_vis_bands()
-
-    @staticmethod
-    def get_soil_props():
-        return ["elevation", "moisture", "temp", "som"]
-
-    @staticmethod
-    def get_soil_props_vis():
-        return Evaluator.get_soil_props() + Evaluator.get_vis_bands()
-
-    @staticmethod
-    def get_all_input():
-        return Evaluator.get_bands() + Evaluator.get_soil_props()
-
-    @staticmethod
-    def get_superset():
-        return Evaluator.get_all_input()
-
-    @staticmethod
-    def get_all_ex_som():
-        superset = Evaluator.get_superset()
-        superset.remove("som")
-        return superset
 
 
 if __name__ == "__main__":
