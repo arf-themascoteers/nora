@@ -232,7 +232,7 @@ class Evaluator:
     @staticmethod
     def get_columns_by_input_info(input_info):
         if input_info is None:
-            input_info = "all"
+            input_info = "all_ex_som"
 
         if isinstance(input_info, str):
             if input_info == "vis":
@@ -268,8 +268,8 @@ class Evaluator:
                 return the_list
             elif input_info == "bands":
                 return Evaluator.get_bands()
-            elif input_info == "all":
-                return Evaluator.get_all_except_output()
+            elif input_info == "all_ex_som":
+                return Evaluator.get_all_ex_som()
 
         elif type(input_info) == list:
             return input_info
@@ -303,9 +303,9 @@ class Evaluator:
         return Evaluator.get_all_input()
 
     @staticmethod
-    def get_all_except_output(the_output):
+    def get_all_ex_som():
         superset = Evaluator.get_superset()
-        superset.remove(the_output)
+        superset.remove("som")
         return superset
 
     def get_details_columns(self):
@@ -324,8 +324,8 @@ class Evaluator:
 
 
 if __name__ == "__main__":
-    # configs = ["vis","props","vis-props","bands","upper-vis", "upper-vis-props","all"]
-    configs = ["vis","props_ex_som","vis_props_ex_som","bands","all"]
+    # configs = ["vis","props","vis-props","bands","upper-vis", "upper-vis-props","all_ex_som"]
+    configs = ["vis","props_ex_som","vis_props_ex_som","bands","all_ex_som"]
     # configs = ["vis"]
     # configs = [
     #     {
