@@ -272,9 +272,9 @@ class S2Extractor:
         self.write_dataset_list_file(self.dir_hash, self.ag_str, self.scenes_str)
 
     def process(self):
-        # if os.path.exists(self.dir_hash_path):
-        #     print(f"Dir exists for {self.dir_str_original} - ({self.dir_hash_path}). Skipping.")
-        #     return self.ml_csv_path, self.scene_list
+        if os.path.exists(self.dir_hash_path):
+            print(f"Dir exists for {self.dir_str_original} - ({self.dir_hash_path}). Skipping.")
+            return self.ml_csv_path, self.scene_list
         df = self.get_df_from_scenes()
         self.create_ml_ready_csv_from_df(df)
         return self.ml_csv_path, self.scene_list
