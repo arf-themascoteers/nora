@@ -19,6 +19,8 @@ class ConfigCreator:
         if config_object["name"] is None:
             if isinstance(config, str):
                 config_object["name"] = config
+            elif isinstance(config["input"], str):
+                config_object["name"] = config["input"]
             else:
                 config_object["name"] = Translator.get_input_name(config)
             ag_name = "None"
