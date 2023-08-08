@@ -270,8 +270,7 @@ class S2Extractor:
 
     def create_ml_ready_csv_from_df(self, df):
         df.to_csv(self.dest_csv_path, index=False)
-        if self.ag:
-            self.aggregate()
+        self.aggregate()
         self.make_ml_ready()
         self.log_file.close()
         self.write_dataset_list_file(self.dir_hash, self.ag_str, self.scenes_str)

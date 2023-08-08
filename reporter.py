@@ -40,7 +40,7 @@ class Reporter:
         df.insert(0,"config",pd.Series([c["name"] for c in self.config_list]))
         df.insert(len(df.columns),"input",pd.Series(["-".join(c["input"]) for c in self.config_list]))
         df.insert(len(df.columns),"output",pd.Series([c["output"] for c in self.config_list]))
-        df.insert(len(df.columns),"ag",pd.Series([c["ag"] for c in self.config_list]))
+        df.insert(len(df.columns),"ag",pd.Series([(c["ag"] if c["ag"] is not None else "None") for c in self.config_list]))
         df.insert(len(df.columns),"scenes", pd.Series([c for c in self.scenes_count]))
         df.insert(len(df.columns),"scenes_string", pd.Series([c for c in self.scenes_string]))
         df.to_csv(self.summary_file, index=False)
