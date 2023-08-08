@@ -10,12 +10,13 @@ from rasterio.windows import Window
 from datetime import datetime
 import re
 from sklearn.preprocessing import MinMaxScaler
+from base_path import BASE_PATH
 
 
 class S2Extractor:
     def __init__(self, ag="low", scenes=0):
         self.FILTERED = True
-        self.SENTINEL_2_HOME = r"D:\Data\Tim\Created\Vectis\Sentinel-2"
+        self.SENTINEL_2_HOME = BASE_PATH
         self.ag = ag
 
         if type(scenes) == list:
@@ -54,7 +55,7 @@ class S2Extractor:
         self.scenes_str = S2Extractor.create_scenes_string(self.scene_list)
         self.dir_str_original = self.ag_str + "_"+self.scenes_str
         self.dir_hash =  hashlib.md5(self.dir_str_original.encode('UTF-8')).hexdigest()
-        self.dir_hash_path = os.path.join(processed_dir, self.dir_hash)
+        self.dir_hash_path = os.path.join(self.processed_dir_path, self.dir_hash)
         self.clip_path = os.path.join(self.dir_hash_path, "clipped")
         self.dest_csv_path = os.path.join(self.dir_hash_path, "complete.csv")
         self.ag_csv_path = os.path.join(self.dir_hash_path, "ag.csv")
