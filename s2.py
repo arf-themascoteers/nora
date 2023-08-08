@@ -133,7 +133,7 @@ class S2Extractor:
             if band_part[0] != 'B':
                 continue
             bands.append(band_part)
-        bands = sorted(bands, key=lambda x: int(re.findall(r'\d+', x)[0]))
+        bands = sorted(bands, key=lambda x: int(re.findall(r'\d+', x)[0]), reverse=self.is_reverve())
 
         for band in bands:
             file_name = f"{band}.jp2"
@@ -174,7 +174,7 @@ class S2Extractor:
         res = dict([(band, src.height * src.width) for band, src in self.iterate_bands(dest_clipped_scene_folder_path)])
         res = sorted(res.items(), key=lambda x: x[1], reverse=self.is_reverve())
         band = res[0][0]
-        src = self.get_src_by_band(band)
+        src = self.get_src_by_band(dest_clipped_scene_folder_path, band)
 
         for i in range(table.shape[0]):
             lon = table[i, 0]
@@ -197,7 +197,7 @@ class S2Extractor:
         table[:,0:data.shape[1]] = data[:,0:data.shape[1]]
         spatial_info_column_count = len(df.columns)
         band_index_start = spatial_info_column_count + len(spatial_info)
-
+        self.populate_scene_info(table, dest_clipped_scene_folder_path, scene_serial)
         for column_offset, (band, src) in enumerate(self.iterate_bands(dest_clipped_scene_folder_path)):
             column_index = band_index_start + column_offset
             for i in range(len(table)):
@@ -236,7 +236,7 @@ class S2Extractor:
             self.log_file.write(f"{index+1},{scene}\n")
 
     def get_df_from_scenes(self):
-        self.create_clips()
+        #self.create_clips()
         df = None
         for index, scene in enumerate(self.scene_list):
             dest_clipped_scene_folder_path = self.get_scene_clip_folder_path(scene)
@@ -268,9 +268,9 @@ class S2Extractor:
         self.write_dataset_list_file(self.dir_hash, self.ag_str, self.scenes_str)
 
     def process(self):
-        if os.path.exists(self.dir_hash_path):
-            print(f"Dir exists for {self.dir_str_original} - ({self.dir_hash_path}). Skipping.")
-            return self.ml_csv_path, self.scene_list
+        # if os.path.exists(self.dir_hash_path):
+        #     print(f"Dir exists for {self.dir_str_original} - ({self.dir_hash_path}). Skipping.")
+        #     return self.ml_csv_path, self.scene_list
         df = self.get_df_from_scenes()
         self.create_ml_ready_csv_from_df(df)
         return self.ml_csv_path, self.scene_list
