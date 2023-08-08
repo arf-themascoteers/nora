@@ -85,12 +85,12 @@ class Evaluator:
 
     def write_summary(self, summary):
         df = pd.DataFrame(data=summary, columns=self.algorithms)
-        df.insert(0,"config",pd.Series([c["name"] for c in self.config_list]))
-        df.insert(1,"input",pd.Series(["-".join(c["input"]) for c in self.config_list]))
-        df.insert(2,"output",pd.Series([c["output"] for c in self.config_list]))
-        df.insert(3,"ag",pd.Series([c["ag"] for c in self.config_list]))
-        df.insert(4,"scenes",pd.Series([c["scenes"] for c in self.config_list]))
-        df.insert(5,"scenes_string",pd.Series([c for c in self.scenes_strings]))
+        df.insert(len(df.columns),"config",pd.Series([c["name"] for c in self.config_list]))
+        df.insert(len(df.columns),"input",pd.Series(["-".join(c["input"]) for c in self.config_list]))
+        df.insert(len(df.columns),"output",pd.Series([c["output"] for c in self.config_list]))
+        df.insert(len(df.columns),"ag",pd.Series([c["ag"] for c in self.config_list]))
+        df.insert(len(df.columns),"scenes",pd.Series([len(c["scenes"]) for c in self.config_list]))
+        df.insert(len(df.columns),"scenes_string",pd.Series([c for c in self.scenes_strings]))
         df.to_csv(self.summary_file, index=False)
 
     def write_details(self):
@@ -100,7 +100,7 @@ class Evaluator:
         confs = [i[1] for i in details_alg_conf]
 
         df.insert(0,"algorithm",pd.Series(algs))
-        df.insert(1,"config",pd.Series(confs))
+        df.insert(len(df.columns),"config",pd.Series(confs))
 
         df.to_csv(self.details_file, index=False)
 
@@ -204,6 +204,8 @@ class Evaluator:
         else:
             if isinstance(config["input"], str):
                 config_object["input"] = Evaluator.get_columns_by_input_info(config["input"])
+            else:
+                config_object["input"] = config["input"]
             for a_prop in ["output","ag","scenes","name"]:
                 if a_prop in config:
                     config_object[a_prop] = config[a_prop]
@@ -307,7 +309,7 @@ class Evaluator:
         cols = []
         for repeat in range(1,self.repeat+1):
             for fold in range(1,self.folds+1):
-                cols.append(f"{repeat}-{fold}")
+                cols.append(f"I-{repeat}-{fold}")
         return cols
 
     def extract(self):
@@ -315,9 +317,9 @@ class Evaluator:
         self.csvs = []
         for config in self.config_list:
             s2 = S2Extractor(ag=config["ag"], scenes=config["scenes"])
-            csv, scenes_string = s2.process()
+            csv, scenes = s2.process()
             self.csvs.append(csv)
-            self.scenes_strings.append(scenes_string)
+            self.scenes_strings.append(S2Extractor.create_scenes_string(scenes))
 
 
 if __name__ == "__main__":
@@ -327,9 +329,10 @@ if __name__ == "__main__":
     #configs = ["vis"]
     configs = [
         {
-            "input":["B02"],
+            "input":["B02","B03"],
             "ag": "low",
-            "scenes": ["S2A_MSIL2A_20220207T002711_N0400_R016_T54HWE_20220207T023040"]
+            "scenes": ["S2A_MSIL2A_20220207T002711_N0400_R016_T54HWE_20220207T023040"],
+            "name" : "shamsu"
         }
     ]
     c = Evaluator(configs=configs, algorithms=["mlr"],prefix="vismlr",folds=2)

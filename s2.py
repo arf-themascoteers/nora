@@ -30,7 +30,7 @@ class S2Extractor:
         self.scene_list = sorted(self.scene_list)
         self.log_file_path = os.path.join("data","log.txt")
         self.log_file = open(self.log_file_path, "w")
-        self.source_csv = "vectis.csv"
+        self.source_csv = "vectis_min.csv"
         self.source_csv_path = os.path.join("data", self.source_csv)
         self.datasets_list_file = "datasets.csv"
 
@@ -192,16 +192,15 @@ class S2Extractor:
 
     def create_table(self, dest_clipped_scene_folder_path, scene_serial):
         epsg = self.get_epsg()
-        spatial_info = ["row","column","scene"]
         bands = self.get_band_list(dest_clipped_scene_folder_path)
         df = pd.read_csv(self.source_csv_path)
         df["when"] = S2Extractor.get_epoch(df["when"])
-        all_columns = list(df.columns) + spatial_info + bands
+        all_columns = list(df.columns) + self.spatial_columns + bands
         table = np.zeros((len(df), len(all_columns)))
         data = df.to_numpy()
         table[:,0:data.shape[1]] = data[:,0:data.shape[1]]
         spatial_info_column_start = len(df.columns)
-        band_index_start = spatial_info_column_start + len(spatial_info)
+        band_index_start = spatial_info_column_start + len(self.spatial_columns)
         self.populate_scene_info(table, dest_clipped_scene_folder_path, spatial_info_column_start, scene_serial)
         for column_offset, (band, src) in enumerate(self.iterate_bands(dest_clipped_scene_folder_path)):
             column_index = band_index_start + column_offset
@@ -253,7 +252,7 @@ class S2Extractor:
                 df = pd.concat([df, current_df])
             print(f"Done scene {index+1}: {scene}")
             self.log_file.write(f"{index+1},{scene}\n")
-        df.sort_values(self.spatial_columns)
+        df.sort_values(self.spatial_columns, inplace=True)
         return df
 
     def aggregate(self):
@@ -261,7 +260,7 @@ class S2Extractor:
         df.drop(columns=self.geo_columns, axis=1, inplace=True)
         columns_to_agg = df.columns.drop(self.spatial_columns)
         if self.ag is not None:
-            df = df.groupby()[columns_to_agg].mean().reset_index()
+            df = df.groupby(self.spatial_columns)[columns_to_agg].mean().reset_index()
         df.to_csv(self.ag_csv_path, index=False)
 
     def create_ml_ready_csv_from_df(self, df):
