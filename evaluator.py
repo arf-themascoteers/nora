@@ -39,6 +39,9 @@ class Evaluator:
         self.sync_details_file()
         self.create_log_file()
 
+        self.scenes = []
+        self.csvs = []
+
     @staticmethod
     def get_input_name(config):
         inp = config["input"]
@@ -85,12 +88,12 @@ class Evaluator:
 
     def write_summary(self, summary):
         df = pd.DataFrame(data=summary, columns=self.algorithms)
-        df.insert(len(df.columns),"config",pd.Series([c["name"] for c in self.config_list]))
+        df.insert(0,"config",pd.Series([c["name"] for c in self.config_list]))
         df.insert(len(df.columns),"input",pd.Series(["-".join(c["input"]) for c in self.config_list]))
         df.insert(len(df.columns),"output",pd.Series([c["output"] for c in self.config_list]))
         df.insert(len(df.columns),"ag",pd.Series([c["ag"] for c in self.config_list]))
-        df.insert(len(df.columns),"scenes",pd.Series([len(c["scenes"]) for c in self.config_list]))
-        df.insert(len(df.columns),"scenes_string",pd.Series([c for c in self.scenes_strings]))
+        df.insert(len(df.columns),"scenes",pd.Series([len(c) for c in self.scenes]))
+        df.insert(len(df.columns),"scenes_string",pd.Series([S2Extractor.create_scenes_string(c) for c in self.scenes]))
         df.to_csv(self.summary_file, index=False)
 
     def write_details(self):
@@ -150,7 +153,7 @@ class Evaluator:
                 print(f"{repeat_number}-{fold_number} done already")
                 continue
             else:
-                print("Start", f"{config}")
+                print("Start", f"{config}",f"{repeat_number}-{fold_number}")
                 score = self.calculate_score(train_ds, test_ds, algorithm)
                 self.log_scores(repeat_number, fold_number, algorithm, config, score)
             if self.verbose:
@@ -313,26 +316,25 @@ class Evaluator:
         return cols
 
     def extract(self):
-        self.scenes_strings = []
-        self.csvs = []
         for config in self.config_list:
             s2 = S2Extractor(ag=config["ag"], scenes=config["scenes"])
             csv, scenes = s2.process()
             self.csvs.append(csv)
-            self.scenes_strings.append(S2Extractor.create_scenes_string(scenes))
+            self.scenes.append(scenes)
 
 
 if __name__ == "__main__":
-    #configs = ["vis","props","vis-props","bands","upper-vis", "upper-vis-props","all"]
+    # configs = ["vis","props","vis-props","bands","upper-vis", "upper-vis-props","all"]
     configs = ["vis","props","vis_props","bands","all"]
-    c = Evaluator(configs=configs, algorithms=["mlr","ann"],prefix="both",folds=3)
-    c.process()
     # configs = ["vis"]
     # configs = [
     #     {
     #         "input":["B02","B03"],
-    #         "ag": "low",
+    #         "ag": "high",
     #         "scenes": ["S2A_MSIL2A_20220207T002711_N0400_R016_T54HWE_20220207T023040"],
     #         "name" : "shamsu"
     #     }
     # ]
+
+    c = Evaluator(configs=configs, algorithms=["mlr","ann"],prefix="both",folds=3)
+    c.process()
