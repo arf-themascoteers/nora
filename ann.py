@@ -62,7 +62,7 @@ class ANN(nn.Module):
         self.eval()
         self.to(self.device)
 
-        dataloader = DataLoader(self.test_ds, batch_size=batch_size, shuffle=True)
+        dataloader = DataLoader(self.test_ds, batch_size=batch_size, shuffle=False)
 
         y_all = np.zeros(0)
         y_hat_all = np.zeros(0)
