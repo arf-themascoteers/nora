@@ -14,7 +14,7 @@ class Splitter:
             return model_selection.train_test_split(df, test_size=0.2, random_state=2)
         df.sort_values(["row","column","scene"], inplace=True)
         total = len(df)
-        test_count = int(total*.8)
+        test_count = int(total*.2)
         train_count = total - test_count
         train = df[0:train_count]
         test = df[train_count:]
