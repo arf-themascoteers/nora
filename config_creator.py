@@ -26,6 +26,9 @@ class ConfigCreator:
             ag_name = "None"
             if config_object["ag"] is not None:
                 ag_name = config_object["ag"]
-            config_object["name"] = f"{config_object['name']}_{ag_name}_{config_object['scenes']}"
+            scene_part = config_object['scenes']
+            if type(scene_part) == list:
+                scene_part = len(config_object['scenes'])
+            config_object["name"] = f"{config_object['name']}_{ag_name}_{scene_part}"
 
         return config_object

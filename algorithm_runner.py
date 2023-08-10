@@ -37,6 +37,6 @@ class AlgorithmRunner:
             model_instance = model_instance.fit(train_x, train_y)
             y_hats = model_instance.predict(test_x)
 
-        rmse = mean_squared_error(y_hats, test_y, squared=False)
-        r2 = r2_score(y_hats, test_y)
-        return r2, rmse
+        r2 = r2_score(test_y, y_hats)
+        rmse = mean_squared_error(test_y, y_hats, squared=False)
+        return round(r2,3), round(rmse,3)
