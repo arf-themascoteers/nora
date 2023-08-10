@@ -5,10 +5,8 @@ from config_creator import ConfigCreator
 from algorithm_runner import AlgorithmRunner
 
 
-class Evaluator:
-    def __init__(self, prefix="", verbose=False, repeat=1, folds=10, algorithms=None, configs=None):
-        self.repeat = repeat
-        self.folds = folds
+class SplitEvaluator:
+    def __init__(self, prefix="", verbose=False, algorithms=None, configs=None):
         self.verbose = verbose
         self.algorithms = algorithms
 

@@ -1,4 +1,4 @@
-from evaluator import Evaluator
+from fold_evaluator import FoldEvaluator
 from translator import Translator
 
 
@@ -44,5 +44,5 @@ if __name__ == "__main__":
     a_config["input"] = Translator.get_vis_bands() + ["B08","B11"]
     configs.append(a_config)
 
-    c = Evaluator(configs=configs, algorithms=["mlr","ann"],prefix="many",folds=3, repeat=1)
+    c = FoldEvaluator(configs=configs, algorithms=["mlr", "ann"], prefix="many", folds=3, repeat=1)
     c.process()

@@ -39,4 +39,4 @@ class AlgorithmRunner:
 
         r2 = r2_score(test_y, y_hats)
         rmse = mean_squared_error(test_y, y_hats, squared=False)
-        return round(r2,3), round(rmse,3)
+        return r2, rmse

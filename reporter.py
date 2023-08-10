@@ -18,10 +18,8 @@ class Reporter:
         self.details_text_columns = ["algorithm", "config"]
         self.summary_file = f"results/{prefix}_summary.csv"
         self.details_file = f"results/{prefix}_details.csv"
-        self.log_file = f"results/{prefix}_log.txt"
         self.details = np.zeros((len(self.algorithms) * len(self.config_list), self.repeat * self.folds * 2))
         self.sync_details_file()
-        self.create_log_file()
 
     def sync_details_file(self):
         if not os.path.exists(self.details_file):
@@ -29,13 +27,6 @@ class Reporter:
         df = pd.read_csv(self.details_file)
         df.drop(columns=self.details_text_columns, axis=1, inplace=True)
         self.details = df.to_numpy()
-
-    def create_log_file(self):
-        log_file = open(self.log_file, "a")
-        log_file.write("\n")
-        log_file.write(str(datetime.now()))
-        log_file.write("\n==============================\n")
-        log_file.close()
 
     def write_summary(self, summary):
         df = pd.DataFrame(data=summary, columns=self.summary_columns)
@@ -62,10 +53,10 @@ class Reporter:
                 details_row = self.get_details_row(index_algorithm, index_config)
                 detail_r2_cells = self.details[details_row, 0:iterations]
                 r2_column_index = index_algorithm
-                score_mean[index_config, r2_column_index] = np.mean(detail_r2_cells)
+                score_mean[index_config, r2_column_index] = self.find_mean_of_done_iterations(detail_r2_cells)
                 detail_rmse_cells = self.details[details_row, iterations:]
                 rmse_column_index = len(self.algorithms) + index_algorithm
-                score_mean[index_config, rmse_column_index] = np.mean(detail_rmse_cells)
+                score_mean[index_config, rmse_column_index] = self.find_mean_of_done_iterations(detail_rmse_cells)
         self.write_summary(score_mean)
 
     def get_details_alg_conf(self):
@@ -86,8 +77,8 @@ class Reporter:
         details_row = self.get_details_row(index_algorithm, index_config)
         details_column_r2 = self.get_details_column(repeat_number, fold_number, 0)
         details_column_rmse = self.get_details_column(repeat_number, fold_number, 1)
-        self.details[details_row, details_column_r2] = r2
-        self.details[details_row, details_column_rmse] = rmse
+        self.details[details_row, details_column_r2] = round(r2,3)
+        self.details[details_row, details_column_rmse] = round(rmse,3)
 
     def get_details(self, index_algorithm, repeat_number, fold_number, index_config):
         details_row = self.get_details_row(index_algorithm, index_config)
@@ -120,11 +111,3 @@ class Reporter:
         df.insert(len(df.columns),"config",pd.Series(confs))
 
         df.to_csv(self.details_file, index=False)
-
-    def log_scores(self, repeat_number, fold_number, algorithm, config, score, rmse):
-        log_file = open(self.log_file, "a")
-        log_file.write(f"\n{repeat_number} - {fold_number} - {algorithm} - {config}\n")
-        log_file.write(str(score))
-        log_file.write(str(rmse))
-        log_file.write("\n")
-        log_file.close()
