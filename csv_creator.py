@@ -16,6 +16,10 @@ class CSVCreator:
 
     def make_ml_ready(self):
         df = pd.read_csv(self.ag_csv_path)
+        df = self.make_ml_ready_df(df)
+        df.to_csv(self.ml_csv_path, index=False)
+
+    def make_ml_ready_df(self, df):
         df.drop(inplace=True, columns=self.spatial_columns, axis=1)
         for col in self.geo_columns:
             if col in df.columns:
@@ -26,7 +30,7 @@ class CSVCreator:
             x_scaled = scaler.fit_transform(data[:, i].reshape(-1, 1))
             data[:, i] = np.squeeze(x_scaled)
         df = pd.DataFrame(data=data, columns=df.columns)
-        df.to_csv(self.ml_csv_path, index=False)
+        return df
 
     def aggregate(self):
         df = pd.read_csv(self.complete_csv_path)
@@ -41,6 +45,10 @@ class CSVCreator:
         self.aggregate()
         s = Splitter(self.ag_csv_path, mode="spatial")
         train, test = s.split()
+        df = pd.concat([train, test])
+        df = self.make_ml_ready_df(df)
+        train = df[0:len(train)]
+        test = df[len(train):]
         train.to_csv(self.train_csv_path, index=False)
         test.to_csv(self.test_csv_path, index=False)
         self.make_ml_ready()
