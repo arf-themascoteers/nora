@@ -29,7 +29,8 @@ class Reporter:
         self.details = df.to_numpy()
 
     def write_summary(self, summary):
-        df = pd.DataFrame(data=summary, columns=self.summary_columns)
+        summary_copy = np.round(summary,3)
+        df = pd.DataFrame(data=summary_copy, columns=self.summary_columns)
         df.insert(0,"config",pd.Series([c["name"] for c in self.config_list]))
         df.insert(len(df.columns),"input",pd.Series(["-".join(c["input"]) for c in self.config_list]))
         df.insert(len(df.columns),"output",pd.Series([c["output"] for c in self.config_list]))
@@ -77,8 +78,8 @@ class Reporter:
         details_row = self.get_details_row(index_algorithm, index_config)
         details_column_r2 = self.get_details_column(repeat_number, fold_number, 0)
         details_column_rmse = self.get_details_column(repeat_number, fold_number, 1)
-        self.details[details_row, details_column_r2] = round(r2,3)
-        self.details[details_row, details_column_rmse] = round(rmse,3)
+        self.details[details_row, details_column_r2] = r2
+        self.details[details_row, details_column_rmse] = rmse
 
     def get_details(self, index_algorithm, repeat_number, fold_number, index_config):
         details_row = self.get_details_row(index_algorithm, index_config)
@@ -102,7 +103,8 @@ class Reporter:
         return cols
 
     def write_details(self):
-        df = pd.DataFrame(data=self.details, columns=self.details_columns)
+        details_copy = np.round(self.details, 3)
+        df = pd.DataFrame(data=details_copy, columns=self.details_columns)
         details_alg_conf = self.get_details_alg_conf()
         algs = [i[0] for i in details_alg_conf]
         confs = [i[1] for i in details_alg_conf]
