@@ -4,22 +4,23 @@ from sklearn.linear_model import LinearRegression
 from sklearn.cross_decomposition import PLSRegression
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.svm import SVR
+from sklearn.metrics import mean_squared_error, r2_score
 
 
 class AlgorithmRunner:
     @staticmethod
     def calculate_score(train_ds, test_ds, algorithm):
-        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        train_x = train_ds.x
+        train_y = train_ds.y
+        test_x = test_ds.x
+        test_y = test_ds.y
+        y_hats = None
         if algorithm == "ann":
-            model = ANN(device, train_ds, test_ds)
-            model.train_model()
-            return model.test()
+            device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+            model_instance = ANN(device, train_ds, test_ds)
+            model_instance.train_model()
+            y_hats = model_instance.test()
         else:
-            train_x = train_ds.x
-            train_y = train_ds.y
-            test_x = test_ds.x
-            test_y = test_ds.y
-
             model_instance = None
             if algorithm == "mlr":
                 model_instance = LinearRegression()
@@ -34,4 +35,8 @@ class AlgorithmRunner:
                 model_instance = SVR()
 
             model_instance = model_instance.fit(train_x, train_y)
-            return model_instance.score(test_x, test_y)
+            y_hats = model_instance.predict(test_x)
+
+        rmse = mean_squared_error(y_hats, test_y, squared=False)
+        r2 = r2_score(y_hats, test_y)
+        return r2, rmse

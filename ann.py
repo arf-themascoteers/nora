@@ -2,7 +2,7 @@ import numpy as np
 import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader
-from sklearn.metrics import r2_score
+from sklearn.metrics import mean_squared_error, r2_score
 
 
 class ANN(nn.Module):
@@ -58,7 +58,7 @@ class ANN(nn.Module):
                 #print(f'Epoch:{epoch + 1} (of {self.num_epochs}), Batch: {batch_number} of {n_batches}, Loss:{loss.item():.6f}')
 
     def test(self):
-        batch_size = 100
+        batch_size = 30000
         self.eval()
         self.to(self.device)
 
@@ -78,5 +78,4 @@ class ANN(nn.Module):
             y_all = np.concatenate((y_all, y))
             y_hat_all = np.concatenate((y_hat_all, y_hat))
 
-        r2 = r2_score(y_all, y_hat_all)
-        return r2
+        return y_hat_all
