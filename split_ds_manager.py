@@ -16,6 +16,10 @@ class SplitDSManager:
         if x is None:
             self.x = list(self.train_df.columns)
             self.x.remove(self.y)
+        self.train_df = self.train_df.sample(frac=1)
+        self.test_df = self.test_df.sample(frac=1)
+        self.train_np = self.train_df.to_numpy()
+        self.test_np = self.test_df.to_numpy()
 
     def get_datasets(self):
-        return SoilDataset(self.train_df), SoilDataset(self.test_df)
+        return SoilDataset(self.train_np), SoilDataset(self.test_np)

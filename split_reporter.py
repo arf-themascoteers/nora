@@ -12,9 +12,9 @@ class SplitReporter:
         self.scenes_string = scenes_string
         self.algorithms = algorithms
         self.details_columns = self.get_details_columns()
-        self.details_text_columns = ["algorithm", "config"]
+        self.details_text_columns = ["config"]
         self.details_file = f"results/{prefix}_details.csv"
-        self.details = np.zeros((len(self.algorithms) * len(self.config_list), 2))
+        self.details = np.zeros((len(self.config_list),len(self.algorithms) * 2))
         self.sync_details_file()
 
     def sync_details_file(self):
@@ -24,39 +24,29 @@ class SplitReporter:
         df.drop(columns=self.details_text_columns, axis=1, inplace=True)
         self.details = df.to_numpy()
 
-    def get_details_alg_conf(self):
-        details_alg_conf = []
-        for i in self.algorithms:
-            for j in self.config_list:
-                details_alg_conf.append((i,j["name"]))
-        return details_alg_conf
-
-    def get_details_row(self, index_algorithm, index_config):
-        return index_algorithm*len(self.config_list) + index_config
+    def get_details_column(self, index_algorithm, metric):
+        return (metric * len(self.algorithms) ) + index_algorithm
 
     def set_details(self, index_algorithm, index_config, r2, rmse):
-        details_row = self.get_details_row(index_algorithm, index_config)
-        self.details[details_row, 0] = r2
-        self.details[details_row, 1] = rmse
+        r2_column = self.get_details_column(index_algorithm, 0)
+        self.details[index_config, r2_column] = r2
+        rmse_column = self.get_details_column(index_algorithm, 1)
+        self.details[index_config, rmse_column] = rmse
 
     def get_details(self, index_algorithm, index_config):
-        details_row = self.get_details_row(index_algorithm, index_config)
-        return self.details[details_row,0], self.details[details_row,1]
+        r2_column = self.get_details_column(index_algorithm, 0)
+        rmse_column = self.get_details_column(index_algorithm, 1)
+        return self.details[index_config, r2_column], self.details[index_config, rmse_column]
 
     def get_details_columns(self):
         cols = []
         for metric in ["R2", "RMSE"]:
-            cols.append(f"{metric}")
+            for algorithm in self.algorithms:
+                cols.append(f"{metric}({algorithm})")
         return cols
 
     def write_details(self):
         details_copy = np.round(self.details, 3)
         df = pd.DataFrame(data=details_copy, columns=self.details_columns)
-        details_alg_conf = self.get_details_alg_conf()
-        algs = [i[0] for i in details_alg_conf]
-        confs = [i[1] for i in details_alg_conf]
-
-        df.insert(0,"algorithm",pd.Series(algs))
-        df.insert(len(df.columns),"config",pd.Series(confs))
-
+        df.insert(0,"config",pd.Series([c["name"] for c in self.config_list]))
         df.to_csv(self.details_file, index=False)

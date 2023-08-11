@@ -19,6 +19,7 @@ class FoldDSManager:
         self.folds = folds
         columns = self.x + [self.y]
         df = df[columns]
+        df = df.sample(frac=1)
         self.full_data = df.to_numpy()
 
     def get_k_folds(self):
