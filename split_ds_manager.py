@@ -16,6 +16,9 @@ class SplitDSManager:
         if x is None:
             self.x = list(self.train_df.columns)
             self.x.remove(self.y)
+        columns = self.x + [self.y]
+        self.train_df = self.train_df[columns]
+        self.test_df = self.test_df[columns]
         self.train_df = self.train_df.sample(frac=1)
         self.test_df = self.test_df.sample(frac=1)
         self.train_np = self.train_df.to_numpy()
