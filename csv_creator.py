@@ -1,7 +1,6 @@
 import pandas as pd
 from sklearn.preprocessing import MinMaxScaler
 import numpy as np
-import os
 from splitter import Splitter
 from csv_collector import CSVCollector
 

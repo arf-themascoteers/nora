@@ -21,11 +21,9 @@ class ANN(nn.Module):
         x_size = train_ds.x.shape[1]
 
         self.linear = nn.Sequential(
-            nn.Linear(x_size, 20),
+            nn.Linear(x_size, 25),
             nn.LeakyReLU(),
-            nn.Linear(20, 10),
-            nn.LeakyReLU(),
-            nn.Linear(10, 1)
+            nn.Linear(25, 1)
         )
 
     def forward(self, x):

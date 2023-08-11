@@ -50,8 +50,10 @@ if __name__ == "__main__":
 
     height, width = Reconstructor.recon(f1)
 
-    spl = Splitter(f1, mode="spatial", strat="bottom")
-    train, test = spl.split()
+    #for s in ["top","bottom","mid","left","right"]:
+    for s in ["block"]:
+        spl = Splitter(f1, mode="spatial", strat=s)
+        train, test = spl.split()
 
-    Reconstructor.recon(train, height, width)
-    Reconstructor.recon(test, height, width)
+        Reconstructor.recon(train, height, width)
+        Reconstructor.recon(test, height, width)
