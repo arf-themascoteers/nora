@@ -1,6 +1,6 @@
-import ds_manager
+import fold_ds_manager
 from s2 import S2Extractor
-from reporter import Reporter
+from fold_reporter import FoldReporter
 from config_creator import ConfigCreator
 from algorithm_runner import AlgorithmRunner
 
@@ -31,7 +31,7 @@ class FoldEvaluator:
             scenes_count.append(len(scenes))
             scenes_string.append(scenes)
 
-        self.reporter = Reporter(prefix, self.config_list, scenes_count, scenes_string,
+        self.reporter = FoldReporter(prefix, self.config_list, scenes_count, scenes_string,
                                  algorithms, self.repeat, self.folds)
 
     def process(self):
@@ -52,7 +52,7 @@ class FoldEvaluator:
     def process_config(self, repeat_number, index_algorithm, index_config):
         algorithm = self.algorithms[index_algorithm]
         config = self.config_list[index_config]
-        ds = ds_manager.DSManager(self.csvs[index_config], folds=self.folds, x=config["input"], y=config["output"])
+        ds = ds_manager.FoldDSManager(self.csvs[index_config], folds=self.folds, x=config["input"], y=config["output"])
         for fold_number, (train_ds, test_ds) in enumerate(ds.get_k_folds()):
             r2, rmse = self.reporter.get_details(index_algorithm, repeat_number, fold_number, index_config)
             if r2 != 0:

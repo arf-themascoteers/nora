@@ -4,7 +4,7 @@ from datetime import datetime
 import pandas as pd
 
 
-class Reporter:
+class FoldReporter:
     def __init__(self, prefix, config_list, scenes_count, scenes_string, algorithms, repeat, folds):
         self.prefix = prefix
         self.config_list = config_list

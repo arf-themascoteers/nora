@@ -1,12 +1,12 @@
 import matplotlib.pyplot as plt
 import os
 import pandas as pd
-import ds_manager
+import fold_ds_manager
 from torch.utils.data import DataLoader
 os.chdir("../")
 
 
-d = ds_manager.DSManager(config="bands")
+d = ds_manager.FoldDSManager(config="bands")
 
 
 for fold_number, (train_ds, test_ds) in enumerate(d.get_k_folds()):
