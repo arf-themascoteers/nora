@@ -31,11 +31,11 @@ class Splitter:
             train_second = df[train_count_first_block+test_count:]
             train = pd.concat([train_first, train_second])
 
-        elif self.strat == "top":
+        elif self.strat == "bottom":
             train = df[0: train_count]
             test = df[train_count:]
 
-        elif self.strat == "bottom":
+        elif self.strat == "top":
             test = df[0:test_count]
             train = df[test_count: ]
 

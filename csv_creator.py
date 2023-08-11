@@ -45,7 +45,7 @@ class CSVCreator:
         self.df.to_csv(self.paths["complete_csv_path"], index=False)
         self.aggregate()
         self.make_ml_ready()
-        s = Splitter(self.paths["ag_csv_path"], mode="spatial", strat="bottom")
+        s = Splitter(self.paths["ag_csv_path"], mode="spatial", strat="top")
         train, test = s.split()
         train.to_csv(self.paths["train_spatial_csv_path"], index=False)
         test.to_csv(self.paths["test_spatial_csv_path"], index=False)
