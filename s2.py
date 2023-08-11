@@ -87,8 +87,8 @@ class S2Extractor:
     def process(self):
         if os.path.exists(self.dir_hash_path):
             print(f"Dir exists for {self.dir_str_original} - ({self.dir_hash_path}). Skipping.")
-            complete_csv_path, ag_csv_path, ml_csv_path, train_csv_path, test_csv_path = CSVCollector.collect(self.dir_hash_path)
-            return ml_csv_path, train_csv_path, test_csv_path, self.scene_list
+            paths = CSVCollector.collect(self.dir_hash_path)
+            return paths, self.scene_list
 
         os.mkdir(self.dir_hash_path)
         os.mkdir(self.clip_path)
@@ -97,9 +97,9 @@ class S2Extractor:
         cd = ClipsToDF(self.clip_path, self.scene_list, self.source_csv_path, self.ag)
         df = cd.get_df()
         csv = CSVCreator(df, self.dir_hash_path, self.ag)
-        complete_csv_path, ag_csv_path, ml_csv_path, train_csv_path, test_csv_path = csv.create()
+        paths = csv.create()
         self.write_dataset_list_file(self.dir_hash, self.ag_str, self.scenes_str)
-        return ml_csv_path, train_csv_path, test_csv_path, self.scene_list
+        return paths, self.scene_list
 
 
 if __name__ == "__main__":
