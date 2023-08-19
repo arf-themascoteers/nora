@@ -31,6 +31,6 @@ if __name__ == "__main__":
     ]
     train_path = "data/processed/47eb237b21511beb392f4845d460e399/train.csv"
     test_path = "data/processed/47eb237b21511beb392f4845d460e399/test.csv"
-    c = SplitEvaluator(configs=configs, algorithms=["mlr","ann"], prefix="bottom", train=train_path, test=test_path)
+    c = SplitEvaluator(configs=configs, algorithms=["mlr","ann"], prefix="mid", train=train_path, test=test_path)
     c.process()
     #["top", "bottom", "mid", "left", "right","block"]:

@@ -1,5 +1,4 @@
 import pandas as pd
-from torch.utils.data import DataLoader
 import torch
 from soil_dataset import SoilDataset
 

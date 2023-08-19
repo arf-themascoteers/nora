@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from csv_collector import CSVCollector
 from splitter import Splitter
+from sklearn import model_selection
 
 
 class Reconstructor:
@@ -41,7 +42,7 @@ class Reconstructor:
 
 if __name__ == "__main__":
     basedir = r"data/processed/47eb237b21511beb392f4845d460e399"
-    f1 = r"data/processed/47eb237b21511beb392f4845d460e399/ag.csv"
+    f1 = r"data/ag.csv"
     # f2 = r"data/processed/47eb237b21511beb392f4845d460e399/train_spatial.csv"
     # f3 = r"data/processed/47eb237b21511beb392f4845d460e399/test_spatial.csv"
     # height, width = Reconstructor.recon(f1)
@@ -50,9 +51,8 @@ if __name__ == "__main__":
 
     height, width = Reconstructor.recon(f1)
     #for s in ["top", "bottom", "mid", "left", "right", "block"]:
-    for s in ["right"]:
-        spl = Splitter(f1, mode="spatial", strat=s)
-        train, test = spl.split()
-
+    for s in ["block"]:
+        df = pd.read_csv(f1)
+        train, test = model_selection.train_test_split(df, test_size=0.2, random_state=2)
         Reconstructor.recon(train, height, width)
         Reconstructor.recon(test, height, width)
