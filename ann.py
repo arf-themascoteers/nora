@@ -21,7 +21,7 @@ class ANN(nn.Module):
         x_size = train_ds.x.shape[1]
 
         self.linear = nn.Sequential(
-            nn.Linear(x_size, 1),
+            nn.Linear(x_size, 20),
             nn.LeakyReLU(),
             nn.Linear(20, 10),
             nn.LeakyReLU(),
@@ -56,14 +56,15 @@ class ANN(nn.Module):
                 optimizer.zero_grad()
                 batch_number += 1
                 r2 = r2_score(y.detach().cpu().numpy(), y_hat.detach().cpu().numpy())
-                print(f'Epoch:{epoch + 1} (of {self.num_epochs}), Batch: {batch_number} of {n_batches}, Loss:{loss.item():.3f}, R2: {r2:.3f}')
 
-    def test(self):
+                #print(f'Epoch:{epoch + 1} (of {self.num_epochs}), Batch: {batch_number} of {n_batches}, Loss:{loss.item():.3f}, R2: {r2:.3f}')
+                # y_all, y_hat_all = self.test_please()
+                # r2 = r2_score(y_all, y_hat_all)
+                #print(f"TEST R2: {r2:.3f}")
+
+    def test_please(self):
         batch_size = 30000
-        self.eval()
-        self.to(self.device)
-
-        dataloader = DataLoader(self.test_ds, batch_size=batch_size, shuffle=True)
+        dataloader = DataLoader(self.test_ds, batch_size=batch_size, shuffle=False)
 
         y_all = np.zeros(0)
         y_hat_all = np.zeros(0)
@@ -79,4 +80,11 @@ class ANN(nn.Module):
             y_all = np.concatenate((y_all, y))
             y_hat_all = np.concatenate((y_hat_all, y_hat))
 
+        return y_all, y_hat_all
+
+    def test(self):
+        self.eval()
+        self.to(self.device)
+        y_all, y_hat_all = self.test_please()
         return y_hat_all
+

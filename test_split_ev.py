@@ -10,12 +10,12 @@ if __name__ == "__main__":
     inputs = ["vis", "props_ex_som", "vis_props_ex_som", "bands", "all_ex_som"]
     configs = []
 
-    #for spl in Splitter.get_all_split_starts():
-    for i in ["all_ex_som"]:
-        a_config = base_config.copy()
-        a_config["input"] = i
-        a_config["split_strat"] = "random"
-        configs.append(a_config)
+    for spl in Splitter.get_all_split_starts():
+        for i in inputs:
+            a_config = base_config.copy()
+            a_config["input"] = i
+            a_config["split_strat"] = spl
+            configs.append(a_config)
 
     c = SplitEvaluator(configs=configs, algorithms=["mlr","ann"], prefix="spl")
     c.process()
