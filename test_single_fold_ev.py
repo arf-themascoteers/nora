@@ -13,5 +13,5 @@ if __name__ == "__main__":
         a_config["input"] = i
         configs.append(a_config)
 
-    c = SingleFoldEvaluator(configs=configs, prefix="fold", folds=2)
+    c = SingleFoldEvaluator(configs=configs, prefix="fold", folds=10)
     c.process()
