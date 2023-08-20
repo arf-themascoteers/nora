@@ -9,15 +9,12 @@ from sklearn.metrics import mean_squared_error, r2_score
 
 class AlgorithmRunner:
     @staticmethod
-    def calculate_score(train_ds, test_ds, algorithm):
-        train_x = train_ds.x
-        train_y = train_ds.y
-        test_x = test_ds.x
-        test_y = test_ds.y
+    def calculate_score(train_x, train_y, test_x, test_y, validation_x, validation_y, algorithm):
         y_hats = None
+
         if algorithm == "ann":
             device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-            model_instance = ANN(device, train_ds, test_ds)
+            model_instance = ANN(device, train_x, train_y, test_x, test_y, validation_x, validation_y)
             model_instance.train_model()
             y_hats = model_instance.test()
         else:

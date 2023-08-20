@@ -50,8 +50,8 @@ class SplitEvaluator:
     def process_config(self, index_algorithm, index_config):
         algorithm = self.algorithms[index_algorithm]
         config = self.config_list[index_config]
-        ds = SplitDSManager(train=self.trains[index_config],test=self.tests[index_config], x=config["input"], y=config["output"])
-        train_ds, test_ds = ds.get_datasets()
+        ds = SplitDSManager(train=self.trains[index_config], test=self.tests[index_config], x=config["input"], y=config["output"])
+        train_x, train_y, test_x, test_y, validation_x, validation_y = ds.get_datasets()
         print("Train: ", self.trains[index_config])
         print("Test: ", self.tests[index_config])
         r2, rmse = self.reporter.get_details(index_algorithm, index_config)
@@ -59,7 +59,7 @@ class SplitEvaluator:
             print(f"{index_algorithm}-{index_config} done already")
         else:
             print("Start", f"{config}",f"{index_algorithm}-{index_config}")
-            r2, rmse = AlgorithmRunner.calculate_score(train_ds, test_ds, algorithm)
+            r2, rmse = AlgorithmRunner.calculate_score(train_x, train_y, test_x, test_y, validation_x, validation_y, algorithm)
         if self.verbose:
             print(f"{r2} - {rmse}")
             print(f"R2 - RMSE")

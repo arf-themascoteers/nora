@@ -4,13 +4,12 @@ from torch.utils.data import Dataset
 
 
 class SoilDataset(Dataset):
-    def __init__(self, source):
-        self.df = source
-        self.x = torch.tensor(source[:,0:-1], dtype=torch.float32)
-        self.y = torch.tensor(source[:,-1], dtype=torch.float32)
+    def __init__(self, x, y):
+        self.x = torch.tensor(x, dtype=torch.float32)
+        self.y = torch.tensor(y, dtype=torch.float32)
 
     def __len__(self):
-        return len(self.df)
+        return len(self.y)
 
     def __getitem__(self, idx):
         return self.x[idx], self.y[idx]

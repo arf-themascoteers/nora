@@ -3,7 +3,6 @@ import matplotlib.pyplot as plt
 import numpy as np
 from csv_collector import CSVCollector
 from splitter import Splitter
-from sklearn import model_selection
 import os
 
 

@@ -53,7 +53,7 @@ class FoldEvaluator:
         algorithm = self.algorithms[index_algorithm]
         config = self.config_list[index_config]
         ds = FoldDSManager(self.csvs[index_config], folds=self.folds, x=config["input"], y=config["output"])
-        for fold_number, (train_ds, test_ds) in enumerate(ds.get_k_folds()):
+        for fold_number, (train_x, train_y, test_x, test_y, validation_x, validation_y) in enumerate(ds.get_k_folds()):
             print("CSV: ", self.csvs[index_config])
             r2, rmse = self.reporter.get_details(index_algorithm, repeat_number, fold_number, index_config)
             if r2 != 0:
@@ -61,7 +61,7 @@ class FoldEvaluator:
                 continue
             else:
                 print("Start", f"{config}",f"{repeat_number}-{fold_number}")
-                r2, rmse = AlgorithmRunner.calculate_score(train_ds, test_ds, algorithm)
+                r2, rmse = AlgorithmRunner.calculate_score(train_x, train_y, test_x, test_y, validation_x, validation_y, algorithm)
             if self.verbose:
                 print(f"{r2} - {rmse}")
                 print(f"R2 - RMSE")

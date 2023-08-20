@@ -1,8 +1,7 @@
-from soil_dataset import SoilDataset
 import pandas as pd
 from sklearn.model_selection import KFold
-from torch.utils.data import DataLoader
 import torch
+from sklearn import model_selection
 
 
 class FoldDSManager:
@@ -26,20 +25,17 @@ class FoldDSManager:
         kf = KFold(n_splits=self.folds)
         for i, (train_index, test_index) in enumerate(kf.split(self.full_data)):
             train_data = self.full_data[train_index]
+            train_data, validation_data = model_selection.train_test_split(train_data, test_size=0.1, random_state=2)
             test_data = self.full_data[test_index]
-            yield SoilDataset(train_data), \
-                SoilDataset(test_data)
+            train_x = train_data[:, :-1]
+            train_y = train_data[:, -1]
+            test_x = test_data[:, :-1]
+            test_y = test_data[:, -1]
+            validation_x = validation_data[:, :-1]
+            validation_y = validation_data[:, -1]
+
+            yield train_x, train_y, test_x, test_y, validation_x, validation_y
 
     def get_folds(self):
         return self.folds
 
-
-if __name__ == "__main__":
-    d = FoldDSManager("data/ml.csv")
-
-    for fold_number, (train_ds, test_ds) in enumerate(d.get_k_folds()):
-        dataloader = DataLoader(train_ds, batch_size=2, shuffle=True)
-        for (x, y) in dataloader:
-            print(x.shape)
-            print(y.shape)
-            exit(0)

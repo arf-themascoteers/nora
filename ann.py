@@ -3,23 +3,27 @@ import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader
 from sklearn.metrics import r2_score
+from soil_dataset import SoilDataset
 
 
 class ANN(nn.Module):
-    def __init__(self, device, train_ds, test_ds, alpha = 0.0):
+    def __init__(self, device, train_x, train_y, test_x, test_y, validation_x, validation_y):
         super().__init__()
         torch.manual_seed(1)
         self.verbose = True
         self.TEST = False
         self.device = device
-        self.train_ds = train_ds
-        self.test_ds = test_ds
-        self.alpha = alpha
+        self.train_ds = SoilDataset(train_x, train_y)
+        self.test_ds = SoilDataset(test_x, test_y)
+        self.validation_ds = SoilDataset(validation_x, validation_y)
         self.num_epochs = 1000
         self.batch_size = 3000
         self.lr = 0.01
+        self.TOLERANCE = 10
+        self.EARLY_STOP_THRESHOLD = 50
+        self.BEST_MODEL_PATH = r"models/best.h5"
 
-        x_size = train_ds.x.shape[1]
+        x_size = validation_x.shape[1]
 
         self.linear = nn.Sequential(
             nn.Linear(x_size, 20),
@@ -40,13 +44,12 @@ class ANN(nn.Module):
         self.to(self.device)
         optimizer = torch.optim.Adam(self.parameters(), lr=self.lr, weight_decay=0.001)
         criterion = torch.nn.MSELoss(reduction='sum')
-        n_batches = int(len(self.train_ds)/self.batch_size) + 1
-
         dataloader = DataLoader(self.train_ds, batch_size=self.batch_size, shuffle=True)
-
+        total_batch = len(dataloader)
+        best_r2 = -100
+        tol = 0
         for epoch in range(self.num_epochs):
-            batch_number = 0
-            for (x, y) in dataloader:
+            for batch_number, (x, y) in enumerate(dataloader):
                 x = x.to(self.device)
                 y = y.to(self.device)
                 y_hat = self(x)
@@ -55,18 +58,29 @@ class ANN(nn.Module):
                 loss.backward()
                 optimizer.step()
                 optimizer.zero_grad()
-                batch_number += 1
 
                 if self.verbose:
-                    r2 = r2_score(y.detach().cpu().numpy(), y_hat.detach().cpu().numpy())
-                    print(f'Epoch:{epoch + 1} (of {self.num_epochs}), Batch: {batch_number} of {n_batches}, Loss:{loss.item():.3f}, R2: {r2:.3f}')
-                    y_all, y_hat_all = self.test_please()
-                    r2 = r2_score(y_all, y_hat_all)
-                    print(f"TEST R2: {r2:.3f}")
+                    r2_test = r2_score(y.detach().cpu().numpy(), y_hat.detach().cpu().numpy())
+                    y_all, y_hat_all = self.evaluate(self, self.validation_ds)
+                    r2_validation = r2_score(y_all, y_hat_all)
+                    print(f'Epoch:{epoch + 1} (of {self.num_epochs}), Batch: {batch_number+1} of {total_batch}, '
+                          f'Loss:{loss.item():.3f}, R2_TEST: {r2_test:.3f}, R2_Validation: {r2_validation:.3f}')
 
-    def test_please(self):
+            if epoch >= self.EARLY_STOP_THRESHOLD:
+                y_all, y_hat_all = self.evaluate(self.validation_ds)
+                r2_validation = r2_score(y_all, y_hat_all)
+                if r2_validation > best_r2:
+                    best_r2 = r2_validation
+                    torch.save(self.state_dict(), 'models/best.h5')
+                    tol = 0
+                else:
+                    tol = tol + 1
+                if tol >= self.TOLERANCE:
+                    return
+
+    def evaluate(self, ds):
         batch_size = 30000
-        dataloader = DataLoader(self.test_ds, batch_size=batch_size, shuffle=False)
+        dataloader = DataLoader(ds, batch_size=batch_size, shuffle=False)
 
         y_all = np.zeros(0)
         y_hat_all = np.zeros(0)
@@ -85,8 +99,9 @@ class ANN(nn.Module):
         return y_all, y_hat_all
 
     def test(self):
+        self.load_state_dict(torch.load(self.BEST_MODEL_PATH))
         self.eval()
         self.to(self.device)
-        y_all, y_hat_all = self.test_please()
+        y_all, y_hat_all = self.evaluate(self.test_ds)
         return y_hat_all
 
