@@ -17,7 +17,6 @@ class HighFoldEvaluator:
 
         self.config_list = []
         self.csvs = []
-        self.scenes = []
 
         for config in configs:
             config_object = ConfigCreator.create_config_object(config)
