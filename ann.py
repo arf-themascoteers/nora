@@ -78,9 +78,9 @@ class ANN(nn.Module):
                 else:
                     tol = tol + 1
                 if tol >= self.TOLERANCE:
-                    r2_test = r2_score(y.detach().cpu().numpy(), y_hat.detach().cpu().numpy())
+                    r2_train = r2_score(y.detach().cpu().numpy(), y_hat.detach().cpu().numpy())
                     print(f"Tolerance exceeded. Current {r2_validation} at epoch {epoch}. "
-                          f"Best {best_r2} was at epoch {best_r2_epoch}. Test {r2_test}")
+                          f"Best {best_r2} was at epoch {best_r2_epoch}. Train {r2_train}")
                     return
 
     def evaluate(self, ds):
