@@ -24,10 +24,8 @@ class S2HiresIntegrator:
             print(f"Dir exists {self.integrated_path} - skipping")
             return CSVCollector.collect(self.integrated_path)
         os.mkdir(self.integrated_path)
-        s2 = CSVCollector.collect(self.s2_path)
-        hir = CSVCollector.collect(self.hires_path)
-        s2_complete = pd.read_csv(s2["complete"])
-        hires_complete = pd.read_csv(hir["complete"])
+        s2_complete = pd.read_csv(self.s2_path["complete"])
+        hires_complete = pd.read_csv(self.hires_path["complete"])
 
         s2_complete.sort_values(["lon", "lat", "when"], inplace=True)
         s2_complete.reset_index(inplace=True)
@@ -36,6 +34,7 @@ class S2HiresIntegrator:
         hires_complete = hires_complete[["B04", "B03", "B02", "B08"]]
         hires_complete.columns = ["red", "green", "blue", "nir"]
         df = pd.concat([s2_complete, hires_complete], axis=1)
+        df.drop(inplace=True, columns=["index"], axis=1)
         df.to_csv(self.paths["complete"], index=False)
 
         self.aggregate()
@@ -87,6 +86,7 @@ class S2HiresIntegrator:
     def aggregate(self):
         df = pd.read_csv(self.paths["complete"])
         df.drop(columns=self.geo_columns, axis=1, inplace=True)
+        #df.drop(inplace=True, columns=["red","green","blue","nir"], axis=1)
         columns_to_agg = df.columns.drop(self.spatial_columns)
         df = df.groupby(self.spatial_columns)[columns_to_agg].mean().reset_index()
         df.to_csv(self.paths["ag"], index=False)

@@ -18,7 +18,7 @@ class SingleSceneProcessor:
     def clip_bands(self, base, dest_clipped_scene_folder_path):
         done = []
         folders = os.listdir(base)
-        folders = sorted(folders, key=lambda x: int(re.findall(r'\d+', x)[0]))
+        folders = sorted(folders, key=lambda x: int(re.findall(r'\d+', x)[0]), reverse=True)
         for resolution in folders:
             resolution_path = os.path.join(base, resolution)
             for file_name in os.listdir(resolution_path):

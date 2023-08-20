@@ -25,7 +25,7 @@ class SingleSplitter:
         train, test = None, None
 
         if self.split_strat in ["top", "mid", "bottom"]:
-            df.sort_values(["row", "column", "scene"], inplace=True)
+            df.sort_values(["row", "column"], inplace=True)
             if self.split_strat == "mid":
                 train_portion_each_block = train_portion/2
                 train_count_first_block = int(total * train_portion_each_block)
@@ -44,7 +44,7 @@ class SingleSplitter:
                 train = df[test_count: ]
 
         elif self.split_strat in ["left", "right"]:
-            df.sort_values(["column","row", "scene"], inplace=True)
+            df.sort_values(["column","row"], inplace=True)
             if self.split_strat == "right":
                 train = df[0: train_count]
                 test = df[train_count:]
@@ -53,7 +53,7 @@ class SingleSplitter:
                 test = df[0:test_count]
                 train = df[test_count:]
         elif self.split_strat == "block":
-            df.sort_values(["row", "column", "scene"], inplace=True)
+            df.sort_values(["row", "column"], inplace=True)
             max_row = df["row"].max()
             max_col = df["column"].max()
             block_len = 10
