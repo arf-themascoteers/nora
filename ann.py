@@ -19,10 +19,10 @@ class ANN(nn.Module):
         self.num_epochs = 2000
         self.batch_size = 3000
         self.lr = 0.01
-        self.TOLERANCE = 100
-        self.EARLY_STOP_THRESHOLD = 1990
+        self.TOLERANCE = 50
+        self.EARLY_STOP_THRESHOLD = 1000
         self.BEST_MODEL_PATH = r"models/best.h5"
-        self.EARLY_STOP = False
+        self.EARLY_STOP = True
 
         x_size = validation_x.shape[1]
 
@@ -110,7 +110,7 @@ class ANN(nn.Module):
 
     def test(self):
         if self.EARLY_STOP:
-            state_dict(torch.load(self.BEST_MODEL_PATH))
+            self.load_state_dict(torch.load(self.BEST_MODEL_PATH))
         self.eval()
         self.to(self.device)
         y_all, y_hat_all = self.evaluate(self.test_ds)
