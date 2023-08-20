@@ -1,4 +1,4 @@
-from s2 import S2Extractor
+from single_s2_extractor import SingleS2Extractor
 from fold_reporter import FoldReporter
 from single_config_creator import SingleConfigCreator
 from algorithm_runner import AlgorithmRunner
@@ -17,21 +17,15 @@ class SingleFoldEvaluator:
 
         self.config_list = []
         self.csvs = []
-        self.scenes = []
-        scenes_count = []
-        scenes_string = []
 
         for config in configs:
-            config_object = SingleConfigCreator.create_config_object(config["scene"])
+            config_object = SingleConfigCreator.create_config_object(config)
             self.config_list.append(config_object)
-            s2 = S2Extractor(ag=config_object["ag"], scenes=config_object["scenes"])
+            s2 = SingleS2Extractor(config_object["scene"])
             paths = s2.process()
             self.csvs.append(paths["ml"])
-            self.scenes.append(scenes)
-            scenes_count.append(len(scenes))
-            scenes_string.append(scenes)
 
-        self.reporter = FoldReporter(prefix, self.config_list, scenes_count, scenes_string,
+        self.reporter = FoldReporter(prefix, self.config_list, 1, "",
                                  self.algorithms, self.repeat, self.folds)
 
     def process(self):
