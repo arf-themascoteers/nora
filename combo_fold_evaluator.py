@@ -15,7 +15,6 @@ class ComboFoldEvaluator:
         if self.algorithms is None:
             self.algorithms = ["mlr", "rf", "svr", "ann"]#, "ann", "cnn", "transformer", "lstm"]
 
-
         self.config_list = []
         self.csvs = []
         self.scenes = []
