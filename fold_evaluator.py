@@ -43,10 +43,9 @@ class FoldEvaluator:
             self.process_algorithm(repeat_number, index_algorithm)
 
     def process_algorithm(self, repeat_number, index_algorithm):
-        print("Start", f"{repeat_number}:{self.algorithms[index_algorithm]}")
         for index_config in range(len(self.config_list)):
             config = self.config_list[index_config]
-            print("Start", f"{config}")
+            print("Start", f"{repeat_number}:{self.algorithms[index_algorithm]} - {config}")
             self.process_config(repeat_number, index_algorithm, index_config)
 
     def process_config(self, repeat_number, index_algorithm, index_config):
@@ -60,7 +59,6 @@ class FoldEvaluator:
                 print(f"{repeat_number}-{fold_number} done already")
                 continue
             else:
-                print("Start", f"{config}",f"{repeat_number}-{fold_number}")
                 r2, rmse = AlgorithmRunner.calculate_score(train_x, train_y, test_x, test_y, validation_x, validation_y, algorithm)
             if self.verbose:
                 print(f"{r2} - {rmse}")
