@@ -17,5 +17,5 @@ if __name__ == "__main__":
             a_config["split_strat"] = spl
             configs.append(a_config)
 
-    c = SplitEvaluator(configs=configs, algorithms=["mlr","ann"], prefix="spl")
+    c = SplitEvaluator(configs=configs, prefix="spl")
     c.process()
