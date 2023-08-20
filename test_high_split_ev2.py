@@ -11,5 +11,5 @@ if __name__ == "__main__":
     a_config["input"] = ["elevation", "moisture", "temp"]
     configs.append(a_config)
 
-    c = HighSplitEvaluator(configs=configs, prefix="spl", algorithms=["mlr"])
+    c = HighSplitEvaluator(configs=configs, prefix="high_spl2", algorithms=["mlr"])
     c.process()

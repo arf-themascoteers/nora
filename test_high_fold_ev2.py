@@ -14,5 +14,5 @@ if __name__ == "__main__":
         a_config["input"] = i
         configs.append(a_config)
 
-    c = HighFoldEvaluator(configs=configs, prefix="fold", folds=10, algorithms=["mlr"])
+    c = HighFoldEvaluator(configs=configs, prefix="high_fold_2", folds=10, algorithms=["mlr"])
     c.process()

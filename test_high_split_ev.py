@@ -22,5 +22,5 @@ if __name__ == "__main__":
             a_config["input"] = i
             configs.append(a_config)
 
-    c = HighSplitEvaluator(configs=configs, prefix="spl")
+    c = HighSplitEvaluator(configs=configs, prefix="high_spl")
     c.process()
