@@ -34,7 +34,7 @@ class SplitEvaluator:
             scenes_count.append(len(scenes))
             scenes_string.append(scenes)
 
-        self.reporter = SplitReporter(prefix, self.config_list, scenes_count, scenes_string, algorithms)
+        self.reporter = SplitReporter(prefix, self.config_list, scenes_count, scenes_string, self.algorithms)
 
     def process(self):
         for index_algorithm, algorithm in enumerate(self.algorithms):
