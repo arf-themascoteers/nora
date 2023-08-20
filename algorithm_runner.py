@@ -11,7 +11,7 @@ class AlgorithmRunner:
     @staticmethod
     def calculate_score(train_x, train_y, test_x, test_y, validation_x, validation_y, algorithm):
         y_hats = None
-        print(f"Train: {len(train_y)}, Test: {test_y}, Validation: {validation_y}")
+        print(f"Train: {len(train_y)}, Test: {len(test_y)}, Validation: {len(validation_y)}")
         if algorithm == "ann":
             device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
             model_instance = ANN(device, train_x, train_y, test_x, test_y, validation_x, validation_y)
