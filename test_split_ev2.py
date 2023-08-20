@@ -7,13 +7,15 @@ if __name__ == "__main__":
         "ag": "low",
         "scenes": ["S2B_MSIL2A_20220413T002709_N0400_R016_T54HXE_20220413T021511"]
     }
-    inputs = ["elevation", "moisture", "temp"]
+    inputs = ["vis", "props_ex_som", "vis_props_ex_som", "bands", "all_ex_som"]
     configs = []
 
-    a_config = base_config.copy()
-    a_config["input"] = inputs
-    a_config["split_strat"] = "random"
-    configs.append(a_config)
+    for spl in Splitter.get_all_split_starts():
+        for i in inputs:
+            a_config = base_config.copy()
+            a_config["input"] = i
+            a_config["split_strat"] = spl
+            configs.append(a_config)
 
-    c = SplitEvaluator(configs=configs, prefix="spl", algorithms=["mlr"])
+    c = SplitEvaluator(configs=configs, prefix="spl", algorithms=["ann"])
     c.process()
