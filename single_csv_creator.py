@@ -1,7 +1,7 @@
 import pandas as pd
 from sklearn.preprocessing import MinMaxScaler
 import numpy as np
-from splitter import Splitter
+from single_splitter import SingleSplitter
 from csv_collector import CSVCollector
 
 
@@ -44,7 +44,7 @@ class SingleCSVCreator:
         self.make_ml_ready()
 
         for ml, spl in CSVCollector.ml_split_combinations():
-            s = Splitter(self.paths["ag"], split_strat=spl)
+            s = SingleSplitter(self.paths["ag"], split_strat=spl)
             train, test = s.split_it()
 
             train_len = len(train)
