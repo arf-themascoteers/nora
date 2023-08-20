@@ -1,8 +1,11 @@
 from single_s2_extractor import SingleS2Extractor
+from hires1 import Hires1Extractor
 from fold_reporter import FoldReporter
 from single_config_creator import SingleConfigCreator
 from algorithm_runner import AlgorithmRunner
 from fold_ds_manager import FoldDSManager
+from s2hires_integrator import S2HiresIntegrator
+import os
 
 
 class SingleFoldEvaluator:
@@ -22,7 +25,16 @@ class SingleFoldEvaluator:
             config_object = SingleConfigCreator.create_config_object(config)
             self.config_list.append(config_object)
             s2 = SingleS2Extractor(config_object["scene"])
-            paths = s2.process()
+            paths1 = s2.process()
+            hir = Hires1Extractor()
+            paths2 = hir.process()
+
+            complete = paths1["complete"]
+            base = os.path.dirname(complete)
+
+            sh = S2HiresIntegrator(paths1, paths2, base)
+            paths = sh.process()
+
             self.csvs.append(paths["ml"])
 
         self.reporter = FoldReporter(prefix, self.config_list, 1, "",
