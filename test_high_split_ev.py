@@ -20,6 +20,7 @@ if __name__ == "__main__":
         for i in inputs:
             a_config = base_config.copy()
             a_config["input"] = i
+            a_config["split_strat"] = spl
             configs.append(a_config)
 
     c = HighSplitEvaluator(configs=configs, prefix="high_spl")
