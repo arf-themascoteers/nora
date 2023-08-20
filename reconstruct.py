@@ -55,7 +55,7 @@ if __name__ == "__main__":
     path = CSVCollector.collect(basedir)
     height, width = Reconstructor.recon(path["ag"],pad=True)
 
-    for s in Splitter.get_all_split_starts():
+    for s in ["random"]:
         train = path[CSVCollector.get_key_spatial(s,"train", ml_ready=False)]
         test = path[CSVCollector.get_key_spatial(s,"test", ml_ready=False)]
         Reconstructor.recon(train, height, width,pad=True)
