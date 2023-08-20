@@ -22,7 +22,7 @@ class HighSplitEvaluator:
             config_object = ConfigCreator.create_config_object(config)
             self.config_list.append(config_object)
             s2 = Hires1Extractor()
-            paths, scenes = s2.process()
+            paths = s2.process()
             train_key = CSVCollector.get_key_spatial(config_object["split_strat"], "train")
             self.trains.append(paths[train_key])
             test_key = CSVCollector.get_key_spatial(config_object["split_strat"], "test")
