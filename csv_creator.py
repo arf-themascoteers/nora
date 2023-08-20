@@ -45,15 +45,23 @@ class CSVCreator:
         self.aggregate()
         self.make_ml_ready()
 
-        s = Splitter(self.paths["ag"], mode="random")
-        train, test = s.split_it()
-        train.to_csv(self.paths[CSVCollector.get_key_random("train")], index=False)
-        test.to_csv(self.paths[CSVCollector.get_key_random("test")], index=False)
-
-        for spl in Splitter.get_all_split_starts():
-            s = Splitter(self.paths["ag"], mode="spatial", split_strat=spl)
+        for ml, spl in CSVCollector.ml_split_combinations():
+            s = Splitter(self.paths["ag"], split_strat=spl)
             train, test = s.split_it()
-            train.to_csv(self.paths[f"train_{spl}"], index=False)
-            test.to_csv(self.paths[f"test_{spl}"], index=False)
+
+            train_key = CSVCollector.get_key_spatial(spl, "train", False)
+            train.to_csv(self.paths[train_key], index=False)
+
+            test_key = CSVCollector.get_key_spatial(spl, "test", False)
+            test.to_csv(self.paths[test_key], index=False)
+
+            train_key = CSVCollector.get_key_spatial(spl, "train", True)
+            train = self.make_ml_ready_df(train)
+            train.to_csv(self.paths[train_key], index=False)
+
+            test_key = CSVCollector.get_key_spatial(spl, "test", True)
+            test = self.make_ml_ready_df(test)
+            test.to_csv(self.paths[test_key], index=False)
 
         return CSVCollector.collect(self.base_dir)
+

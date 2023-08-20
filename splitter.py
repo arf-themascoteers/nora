@@ -4,20 +4,17 @@ import random
 
 
 class Splitter:
-    def __init__(self, csv, mode="random", split_strat="mid"):
-        #mode = random, spatial
-        #split = top, bottom, right, left, mid
+    def __init__(self, csv, split_strat="random"):
         self.csv = csv
-        self.mode = mode
         self.split_strat = split_strat
 
     @staticmethod
     def get_all_split_starts():
-        return ["top", "bottom", "mid", "left", "right","block"]
+        return ["random", "top", "bottom", "mid", "left", "right","block"]
 
     def split_it(self):
         df = pd.read_csv(self.csv)
-        if self.mode == "random":
+        if self.split_strat == "random":
             return model_selection.train_test_split(df, test_size=0.2, random_state=2)
 
         total = len(df)

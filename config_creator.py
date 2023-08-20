@@ -4,7 +4,7 @@ from translator import Translator
 class ConfigCreator:
     @staticmethod
     def create_config_object(config):
-        config_object = {"input":[],"output":"som","ag":"low","split_strat":None,"scenes":0,"name":None}
+        config_object = {"input":[],"output":"som","ag":"low","split_strat":"random","scenes":0,"name":None}
 
         if isinstance(config["input"], str):
             config_object["input"] = Translator.get_columns_by_input_info(config["input"])
@@ -27,9 +27,6 @@ class ConfigCreator:
             if type(scene_part) == list:
                 scene_part = len(config_object['scenes'])
 
-            config_object["name"] = f"{config_object['name']}_{ag_name}_{scene_part}"
-
-            if config_object["split_strat"] is not None:
-                config_object["name"] = f"{config_object['name']}_{config_object['split_strat']}"
+            config_object["name"] = f"{config_object['name']}_{ag_name}_{scene_part}_{config_object['split_strat']}"
 
         return config_object

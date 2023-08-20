@@ -14,7 +14,7 @@ if __name__ == "__main__":
     for i in ["all_ex_som"]:
         a_config = base_config.copy()
         a_config["input"] = i
-        a_config["split_strat"] = None
+        a_config["split_strat"] = "random"
         configs.append(a_config)
 
     c = SplitEvaluator(configs=configs, algorithms=["mlr","ann"], prefix="spl")
