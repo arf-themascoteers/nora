@@ -19,7 +19,7 @@ class ANN(nn.Module):
         self.num_epochs = 1000
         self.batch_size = 3000
         self.lr = 0.01
-        self.TOLERANCE = 20
+        self.TOLERANCE = 50
         self.EARLY_STOP_THRESHOLD = 50
         self.BEST_MODEL_PATH = r"models/best.h5"
 
