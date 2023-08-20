@@ -49,18 +49,23 @@ class CSVCreator:
             s = Splitter(self.paths["ag"], split_strat=spl)
             train, test = s.split_it()
 
+            train_len = len(train)
+
             train_key = CSVCollector.get_key_spatial(spl, "train", False)
             train.to_csv(self.paths[train_key], index=False)
 
             test_key = CSVCollector.get_key_spatial(spl, "test", False)
             test.to_csv(self.paths[test_key], index=False)
 
+            combo = pd.concat([train, test])
+            combo = self.make_ml_ready_df(combo)
+
+            train = combo[0:train_len]
             train_key = CSVCollector.get_key_spatial(spl, "train", True)
-            train = self.make_ml_ready_df(train)
             train.to_csv(self.paths[train_key], index=False)
 
+            test = combo[train_len:]
             test_key = CSVCollector.get_key_spatial(spl, "test", True)
-            test = self.make_ml_ready_df(test)
             test.to_csv(self.paths[test_key], index=False)
 
         return CSVCollector.collect(self.base_dir)
