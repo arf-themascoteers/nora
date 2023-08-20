@@ -8,7 +8,7 @@ import os
 
 class Reconstructor:
     @staticmethod
-    def recon(csv, height=None, width=None):
+    def recon(csv, height=None, width=None, save=True):
         df = None
         if isinstance(csv, str):
             df = pd.read_csv(csv)
@@ -30,7 +30,10 @@ class Reconstructor:
             x[row,col] = pix
         plt.imshow(x)
         file_name = os.path.basename(csv)
-        plt.savefig(f"plots/{file_name}.png")
+        if save:
+            plt.savefig(f"plots/{file_name}.png")
+        else:
+            plt.show()
         plt.clf()
         return height, width
 
