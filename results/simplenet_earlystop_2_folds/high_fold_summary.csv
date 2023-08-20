@@ -1,0 +1,8 @@
+config,R2(mlr),R2(rf),R2(svr),R2(ann),RMSE(mlr),RMSE(rf),RMSE(svr),RMSE(ann),input,output
+B04+2_low_0_random,0.022,0.115,0.114,0.112,0.179,0.17,0.17,0.171,B04-B03-B02,som
+B04+3_low_0_random,0.022,0.118,0.114,0.114,0.179,0.17,0.17,0.17,B04-B03-B02-B08,som
+B08_low_0_random,0.022,0.116,0.11,0.022,0.179,0.17,0.171,0.179,B08,som
+elevation+2_low_0_random,0.377,0.563,0.599,0.454,0.143,0.12,0.115,0.134,elevation-moisture-temp,som
+elevation+5_low_0_random,0.387,0.567,0.63,0.517,0.142,0.119,0.11,0.126,elevation-moisture-temp-B04-B03-B02,som
+elevation+6_low_0_random,0.386,0.571,0.628,0.541,0.142,0.118,0.11,0.123,elevation-moisture-temp-B04-B03-B02-B08,som
+elevation+3_low_0_random,0.387,0.567,0.634,0.483,0.142,0.119,0.109,0.13,elevation-moisture-temp-B08,som
