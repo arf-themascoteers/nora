@@ -1,8 +1,11 @@
-from s2 import S2Extractor
+from single_config_creator import SingleConfigCreator
+from single_s2_extractor import SingleS2Extractor
+from hires1 import Hires1Extractor
+from s2hires_integrator import S2HiresIntegrator
 from fold_reporter import FoldReporter
-from config_creator import ConfigCreator
 from algorithm_runner import AlgorithmRunner
 from fold_ds_manager import FoldDSManager
+import os
 
 
 class ComboFoldEvaluator:
@@ -17,21 +20,24 @@ class ComboFoldEvaluator:
 
         self.config_list = []
         self.csvs = []
-        self.scenes = []
-        scenes_count = []
-        scenes_string = []
 
         for config in configs:
-            config_object = ConfigCreator.create_config_object(config)
+            config_object = SingleConfigCreator.create_config_object(config)
             self.config_list.append(config_object)
-            s2 = S2Extractor(ag=config_object["ag"], scenes=config_object["scenes"])
-            paths, scenes = s2.process()
-            self.csvs.append(paths["ml"])
-            self.scenes.append(scenes)
-            scenes_count.append(len(scenes))
-            scenes_string.append(scenes)
+            s2 = SingleS2Extractor(config_object["scene"])
+            paths1 = s2.process()
+            hir = Hires1Extractor()
+            paths2 = hir.process()
 
-        self.reporter = FoldReporter(prefix, self.config_list, scenes_count, scenes_string,
+            complete = paths1["complete"]
+            base = os.path.dirname(complete)
+
+            sh = S2HiresIntegrator(paths1, paths2, base)
+            paths = sh.process()
+
+            self.csvs.append(paths["ml"])
+
+        self.reporter = FoldReporter(prefix, self.config_list, 1, "",
                                  self.algorithms, self.repeat, self.folds)
 
     def process(self):
