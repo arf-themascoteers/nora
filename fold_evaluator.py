@@ -13,7 +13,7 @@ class FoldEvaluator:
         self.algorithms = algorithms
 
         if self.algorithms is None:
-            self.algorithms = ["mlr", "plsr", "rf", "svr"]#, "ann", "cnn", "transformer", "lstm"]
+            self.algorithms = ["mlr", "plsr", "rf", "svr", "ann"]#, "ann", "cnn", "transformer", "lstm"]
 
         self.config_list = []
         self.csvs = []
@@ -32,7 +32,7 @@ class FoldEvaluator:
             scenes_string.append(scenes)
 
         self.reporter = FoldReporter(prefix, self.config_list, scenes_count, scenes_string,
-                                 algorithms, self.repeat, self.folds)
+                                 self.algorithms, self.repeat, self.folds)
 
     def process(self):
         for repeat_number in range(self.repeat):
