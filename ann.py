@@ -36,7 +36,7 @@ class ANN(nn.Module):
         self.train()
         self.to(self.device)
         optimizer = torch.optim.Adam(self.parameters(), lr=self.lr, weight_decay=0.001)
-        criterion = torch.nn.MSELoss(reduction='sum')
+        criterion = torch.nn.MSELoss(reduction='mean')
         n_batches = int(len(self.train_ds)/self.batch_size) + 1
 
         dataloader = DataLoader(self.train_ds, batch_size=self.batch_size, shuffle=True)

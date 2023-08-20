@@ -4,6 +4,7 @@ import numpy as np
 from csv_collector import CSVCollector
 from splitter import Splitter
 from sklearn import model_selection
+import os
 
 
 class Reconstructor:
@@ -29,7 +30,9 @@ class Reconstructor:
             col = int(col)
             x[row,col] = pix
         plt.imshow(x)
-        plt.show()
+        file_name = os.path.basename(csv)
+        plt.savefig(f"plots/{file_name}.png")
+        plt.clf()
         return height, width
 
     @staticmethod
@@ -42,17 +45,16 @@ class Reconstructor:
 
 if __name__ == "__main__":
     basedir = r"data/processed/47eb237b21511beb392f4845d460e399"
-    f1 = r"data/ag.csv"
-    # f2 = r"data/processed/47eb237b21511beb392f4845d460e399/train_spatial.csv"
-    # f3 = r"data/processed/47eb237b21511beb392f4845d460e399/test_spatial.csv"
-    # height, width = Reconstructor.recon(f1)
-    # Reconstructor.recon(f2, height, width)
-    # Reconstructor.recon(f3, height, width)
+    path = CSVCollector.collect(basedir)
+    height, width = Reconstructor.recon(path["ag"])
 
-    height, width = Reconstructor.recon(f1)
-    #for s in ["top", "bottom", "mid", "left", "right", "block"]:
-    for s in ["block"]:
-        df = pd.read_csv(f1)
-        train, test = model_selection.train_test_split(df, test_size=0.2, random_state=2)
+    train = path[CSVCollector.get_key_random("train")]
+    test = path[CSVCollector.get_key_random("test")]
+    Reconstructor.recon(train, height, width)
+    Reconstructor.recon(test, height, width)
+
+    for s in Splitter.get_all_split_starts():
+        train = path[CSVCollector.get_key_spatial(s,"train")]
+        test = path[CSVCollector.get_key_spatial(s,"test")]
         Reconstructor.recon(train, height, width)
         Reconstructor.recon(test, height, width)

@@ -15,10 +15,6 @@ if __name__ == "__main__":
             a_config["input"] = i
             a_config["split_strat"] = spl
             configs.append(a_config)
-            break
-        break
 
-    train_path = "data/processed/47eb237b21511beb392f4845d460e399/train.csv"
-    test_path = "data/processed/47eb237b21511beb392f4845d460e399/test.csv"
     c = SplitEvaluator(configs=configs, algorithms=["mlr","ann"], prefix="spl")
     c.process()
