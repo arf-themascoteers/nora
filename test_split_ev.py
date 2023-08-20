@@ -7,10 +7,10 @@ if __name__ == "__main__":
         "ag": "low",
         "scenes": ["S2B_MSIL2A_20220413T002709_N0400_R016_T54HXE_20220413T021511"]
     }
-    inputs = ["vis", "props_ex_som", "vis_props_ex_som", "bands", "all_ex_som"]
+    inputs = ["vis"]#, "props_ex_som", "vis_props_ex_som", "bands", "all_ex_som"]
     configs = []
 
-    for spl in Splitter.get_all_split_starts():
+    for spl in ["random"]:#Splitter.get_all_split_starts():
         for i in inputs:
             a_config = base_config.copy()
             a_config["input"] = i
