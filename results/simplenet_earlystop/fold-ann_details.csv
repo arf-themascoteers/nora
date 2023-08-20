@@ -1,0 +1,6 @@
+algorithm,R2(1-1),R2(1-2),RMSE(1-1),RMSE(1-2),config
+ann,0.259,0.264,0.152,0.15,vis_low_1_random
+ann,0.478,0.458,0.128,0.129,props_ex_som_low_1_random
+ann,0.563,0.557,0.117,0.116,vis_props_ex_som_low_1_random
+ann,0.454,0.44,0.132,0.129,bands_low_1_random
+ann,0.505,0.511,0.122,0.124,all_ex_som_low_1_random

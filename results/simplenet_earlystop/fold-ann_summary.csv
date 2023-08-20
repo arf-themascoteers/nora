@@ -1,0 +1,6 @@
+config,R2(ann),RMSE(ann),input,output
+vis_low_1_random,0.261,0.151,B02-B03-B04,som
+props_ex_som_low_1_random,0.468,0.128,elevation-moisture-temp,som
+vis_props_ex_som_low_1_random,0.56,0.116,elevation-moisture-temp-B02-B03-B04,som
+bands_low_1_random,0.447,0.131,B01-B02-B03-B04-B05-B06-B07-B08-B8A-B09-B11-B12,som
+all_ex_som_low_1_random,0.508,0.123,B01-B02-B03-B04-B05-B06-B07-B08-B8A-B09-B11-B12-elevation-moisture-temp,som
