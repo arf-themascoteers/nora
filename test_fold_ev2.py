@@ -14,5 +14,5 @@ if __name__ == "__main__":
         a_config["input"] = i
         configs.append(a_config)
 
-    c = FoldEvaluator(configs=configs, prefix="fold-ann", folds=2, algorithms=["ann"])
+    c = FoldEvaluator(configs=configs, prefix="fold-ann", folds=10, algorithms=["ann"])
     c.process()
