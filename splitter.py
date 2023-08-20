@@ -15,7 +15,7 @@ class Splitter:
     def split_it(self):
         df = pd.read_csv(self.csv)
         if self.split_strat == "random":
-            return model_selection.train_test_split(df, test_size=0.2, random_state=2)
+            return model_selection.train_test_split(df, test_size=0.1, random_state=2)
 
         total = len(df)
         test_portion = 0.2
