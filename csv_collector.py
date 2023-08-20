@@ -22,8 +22,10 @@ class CSVCollector:
         return path
 
     @staticmethod
-    def get_key_spatial(split, task):
-        return f"{task}_{split}"
+    def get_key_spatial(split_strat, task):
+        if split_strat is None:
+            return CSVCollector.get_key_random(task)
+        return f"{task}_{split_strat}"
 
     @staticmethod
     def get_key_random(task):

@@ -50,6 +50,8 @@ class SplitEvaluator:
         config = self.config_list[index_config]
         ds = SplitDSManager(train=self.trains[index_config],test=self.tests[index_config], x=config["input"], y=config["output"])
         train_ds, test_ds = ds.get_datasets()
+        print("Train: ", self.trains[index_config])
+        print("Test: ", self.tests[index_config])
         r2, rmse = self.reporter.get_details(index_algorithm, index_config)
         if r2 != 0:
             print(f"{index_algorithm}-{index_config} done already")
