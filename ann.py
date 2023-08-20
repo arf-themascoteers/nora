@@ -28,9 +28,7 @@ class ANN(nn.Module):
         self.linear = nn.Sequential(
             nn.Linear(x_size, 20),
             nn.LeakyReLU(),
-            nn.Linear(20, 10),
-            nn.LeakyReLU(),
-            nn.Linear(10, 1)
+            nn.Linear(20, 1)
         )
 
     def forward(self, x):
@@ -47,6 +45,7 @@ class ANN(nn.Module):
         dataloader = DataLoader(self.train_ds, batch_size=self.batch_size, shuffle=True)
         total_batch = len(dataloader)
         best_r2 = -100
+        best_r2_epoch = 0
         tol = 0
         for epoch in range(self.num_epochs):
             for batch_number, (x, y) in enumerate(dataloader):
@@ -71,12 +70,13 @@ class ANN(nn.Module):
                 r2_validation = r2_score(y_all, y_hat_all)
                 if r2_validation > best_r2:
                     best_r2 = r2_validation
+                    best_r2_epoch = epoch
                     torch.save(self.state_dict(), 'models/best.h5')
                     tol = 0
                 else:
                     tol = tol + 1
                 if tol >= self.TOLERANCE:
-                    print(f"Tolerance exceeded. Current {r2_validation}. Best {best_r2}")
+                    print(f"Tolerance exceeded. Current {r2_validation} at epoch {epoch}. Best {best_r2} was at epoch {best_r2_epoch}")
                     return
 
     def evaluate(self, ds):
