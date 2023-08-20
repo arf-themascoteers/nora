@@ -9,6 +9,7 @@ class ANN(nn.Module):
     def __init__(self, device, train_ds, test_ds, alpha = 0.0):
         super().__init__()
         torch.manual_seed(1)
+        self.verbose = True
         self.TEST = False
         self.device = device
         self.train_ds = train_ds
@@ -55,12 +56,13 @@ class ANN(nn.Module):
                 optimizer.step()
                 optimizer.zero_grad()
                 batch_number += 1
-                r2 = r2_score(y.detach().cpu().numpy(), y_hat.detach().cpu().numpy())
 
-                #print(f'Epoch:{epoch + 1} (of {self.num_epochs}), Batch: {batch_number} of {n_batches}, Loss:{loss.item():.3f}, R2: {r2:.3f}')
-                # y_all, y_hat_all = self.test_please()
-                # r2 = r2_score(y_all, y_hat_all)
-                #print(f"TEST R2: {r2:.3f}")
+                if self.verbose:
+                    r2 = r2_score(y.detach().cpu().numpy(), y_hat.detach().cpu().numpy())
+                    print(f'Epoch:{epoch + 1} (of {self.num_epochs}), Batch: {batch_number} of {n_batches}, Loss:{loss.item():.3f}, R2: {r2:.3f}')
+                    y_all, y_hat_all = self.test_please()
+                    r2 = r2_score(y_all, y_hat_all)
+                    print(f"TEST R2: {r2:.3f}")
 
     def test_please(self):
         batch_size = 30000
