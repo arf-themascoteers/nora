@@ -14,7 +14,7 @@ class CSVCollector:
             train_random: os.path.join(source_dir, f"{train_random}.csv"),
             test_random: os.path.join(source_dir, f"{test_random}.csv")
         }
-        for spl in Splitter.get_all_splits():
+        for spl in Splitter.get_all_split_starts():
             train = CSVCollector.get_key_spatial(spl, "train")
             test = CSVCollector.get_key_spatial(spl, "test")
             path[train] = os.path.join(source_dir, f"{train}.csv")

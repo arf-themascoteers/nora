@@ -4,14 +4,14 @@ from translator import Translator
 class ConfigCreator:
     @staticmethod
     def create_config_object(config):
-        config_object = {"input":[],"output":"som","ag":"low","split":"block","scenes":0,"name":None}
+        config_object = {"input":[],"output":"som","ag":"low","split_strat":"block","scenes":0,"name":None}
 
         if isinstance(config["input"], str):
             config_object["input"] = Translator.get_columns_by_input_info(config["input"])
         else:
             config_object["input"] = config["input"]
 
-        for a_prop in ["output","ag","split","scenes","name"]:
+        for a_prop in ["output","ag","split_strat","scenes","name"]:
             if a_prop in config:
                 config_object[a_prop] = config[a_prop]
 

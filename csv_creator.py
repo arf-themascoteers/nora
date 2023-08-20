@@ -46,13 +46,13 @@ class CSVCreator:
         self.make_ml_ready()
 
         s = Splitter(self.paths["ag"], mode="random")
-        train, test = s.split()
+        train, test = s.split_it()
         train.to_csv(self.paths[CSVCollector.get_key_random("train")], index=False)
         test.to_csv(self.paths[CSVCollector.get_key_random("test")], index=False)
 
-        for spl in Splitter.get_all_splits():
-            s = Splitter(self.paths["ag"], mode="spatial", split=spl)
-            train, test = s.split()
+        for spl in Splitter.get_all_split_starts():
+            s = Splitter(self.paths["ag"], mode="spatial", split_strat=spl)
+            train, test = s.split_it()
             train.to_csv(self.paths[f"train_{spl}"], index=False)
             test.to_csv(self.paths[f"test_{spl}"], index=False)
 
