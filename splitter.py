@@ -18,8 +18,8 @@ class Splitter:
             return model_selection.train_test_split(df, test_size=0.1, random_state=3)
 
         total = len(df)
-        test_portion = 0.2
-        test_count = int(total*.2)
+        test_portion = 0.1
+        test_count = int(total*test_portion)
         train_portion = 1 - test_portion
         train_count = total - test_count
         train, test = None, None
