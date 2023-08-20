@@ -3,12 +3,11 @@ from split_reporter import SplitReporter
 from config_creator import ConfigCreator
 from algorithm_runner import AlgorithmRunner
 from split_ds_manager import SplitDSManager
+from csv_collector import CSVCollector
 
 
 class SplitEvaluator:
-    def __init__(self, prefix="", verbose=False, algorithms=None, configs=None, train=None, test=None):
-        self.train = train
-        self.test = test
+    def __init__(self, prefix="", verbose=False, algorithms=None, configs=None):
         self.verbose = verbose
         self.algorithms = algorithms
 
@@ -27,8 +26,8 @@ class SplitEvaluator:
             self.config_list.append(config_object)
             s2 = S2Extractor(ag=config_object["ag"], scenes=config_object["scenes"])
             paths, scenes = s2.process()
-            self.trains.append(paths["train_csv_path"])
-            self.tests.append(paths["test_csv_path"])
+            self.trains.append(paths[CSVCollector.get_key_spatial(config_object["split"], "train")])
+            self.tests.append(paths[CSVCollector.get_key_spatial(config_object["split"], "test")])
             self.scenes.append(scenes)
             scenes_count.append(len(scenes))
             scenes_string.append(scenes)

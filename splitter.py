@@ -4,17 +4,22 @@ import random
 
 
 class Splitter:
-    def __init__(self, csv, mode="random",strat="mid"):
+    def __init__(self, csv, mode="random", split="mid"):
         #mode = random, spatial
-        #strat = top, bottom, right, left, mid
+        #split = top, bottom, right, left, mid
         self.csv = csv
         self.mode = mode
-        self.strat = strat
+        self.split = split
+
+    @staticmethod
+    def get_all_splits():
+        return ["top", "bottom", "mid", "left", "right","block"]
 
     def split(self):
         df = pd.read_csv(self.csv)
         if self.mode == "random":
             return model_selection.train_test_split(df, test_size=0.2, random_state=2)
+
         total = len(df)
         test_portion = 0.2
         test_count = int(total*.2)
@@ -22,9 +27,9 @@ class Splitter:
         train_count = total - test_count
         train, test = None, None
 
-        if self.strat in ["top", "mid", "bottom"]:
+        if self.split in ["top", "mid", "bottom"]:
             df.sort_values(["row", "column", "scene"], inplace=True)
-            if self.strat == "mid":
+            if self.split == "mid":
                 train_portion_each_block = train_portion/2
                 train_count_first_block = int(total * train_portion_each_block)
 
@@ -33,24 +38,24 @@ class Splitter:
                 train_second = df[train_count_first_block+test_count:]
                 train = pd.concat([train_first, train_second])
 
-            elif self.strat == "bottom":
+            elif self.split == "bottom":
                 train = df[0: train_count]
                 test = df[train_count:]
 
-            elif self.strat == "top":
+            elif self.split == "top":
                 test = df[0:test_count]
                 train = df[test_count: ]
 
-        elif self.strat in ["left", "right"]:
+        elif self.split in ["left", "right"]:
             df.sort_values(["column","row", "scene"], inplace=True)
-            if self.strat == "right":
+            if self.split == "right":
                 train = df[0: train_count]
                 test = df[train_count:]
 
-            elif self.strat == "left":
+            elif self.split == "left":
                 test = df[0:test_count]
                 train = df[test_count:]
-        elif self.strat == "block":
+        elif self.split == "block":
             df.sort_values(["row", "column", "scene"], inplace=True)
             max_row = df["row"].max()
             max_col = df["column"].max()

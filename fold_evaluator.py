@@ -26,7 +26,7 @@ class FoldEvaluator:
             self.config_list.append(config_object)
             s2 = S2Extractor(ag=config_object["ag"], scenes=config_object["scenes"])
             paths, scenes = s2.process()
-            self.csvs.append(paths["ml_csv_path"])
+            self.csvs.append(paths["ml"])
             self.scenes.append(scenes)
             scenes_count.append(len(scenes))
             scenes_string.append(scenes)

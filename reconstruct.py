@@ -35,7 +35,7 @@ class Reconstructor:
     @staticmethod
     def recon_folder(folder):
         paths = CSVCollector.collect(folder)
-        height, width = Reconstructor.recon(paths["ag_csv_path"])
+        height, width = Reconstructor.recon(paths["ag"])
         Reconstructor.recon(paths["train_spatial_csv_path"], height, width)
         Reconstructor.recon(paths["test_spatial_csv_path"], height, width)
 

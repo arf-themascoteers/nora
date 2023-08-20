@@ -1,17 +1,32 @@
 import os
+from splitter import Splitter
 
 
 class CSVCollector:
     @staticmethod
     def collect(source_dir):
+        train_random = CSVCollector.get_key_random("train")
+        test_random = CSVCollector.get_key_random("test")
         path = {
-            "complete_csv_path": os.path.join(source_dir, "complete.csv"),
-            "ag_csv_path": os.path.join(source_dir, "ag.csv"),
-            "ml_csv_path": os.path.join(source_dir, "ml.csv"),
-            "train_spatial_csv_path": os.path.join(source_dir, "train_spatial.csv"),
-            "test_spatial_csv_path": os.path.join(source_dir, "test_spatial.csv"),
-            "train_csv_path": os.path.join(source_dir, "train.csv"),
-            "test_csv_path": os.path.join(source_dir, "test.csv")
+            "complete": os.path.join(source_dir, "complete.csv"),
+            "ag": os.path.join(source_dir, "ag.csv"),
+            "ml": os.path.join(source_dir, "ml.csv"),
+            train_random: os.path.join(source_dir, f"{train_random}.csv"),
+            test_random: os.path.join(source_dir, f"{test_random}.csv")
         }
+        for spl in Splitter.get_all_splits():
+            train = CSVCollector.get_key_spatial(spl, "train")
+            test = CSVCollector.get_key_spatial(spl, "test")
+            path[train] = os.path.join(source_dir, f"{train}.csv")
+            path[test] = os.path.join(source_dir, f"{test}.csv")
         return path
+
+    @staticmethod
+    def get_key_spatial(split, task):
+        return f"{task}_{split}"
+
+    @staticmethod
+    def get_key_random(task):
+        return f"{task}_random"
+
         
