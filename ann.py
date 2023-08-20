@@ -2,7 +2,7 @@ import numpy as np
 import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader
-from sklearn.metrics import mean_squared_error, r2_score
+from sklearn.metrics import r2_score
 
 
 class ANN(nn.Module):
@@ -21,9 +21,11 @@ class ANN(nn.Module):
         x_size = train_ds.x.shape[1]
 
         self.linear = nn.Sequential(
-            nn.Linear(x_size, 20),
+            nn.Linear(x_size, 1),
             nn.LeakyReLU(),
-            nn.Linear(20, 1)
+            nn.Linear(20, 10),
+            nn.LeakyReLU(),
+            nn.Linear(10, 1)
         )
 
     def forward(self, x):
@@ -36,7 +38,7 @@ class ANN(nn.Module):
         self.train()
         self.to(self.device)
         optimizer = torch.optim.Adam(self.parameters(), lr=self.lr, weight_decay=0.001)
-        criterion = torch.nn.MSELoss(reduction='mean')
+        criterion = torch.nn.MSELoss(reduction='sum')
         n_batches = int(len(self.train_ds)/self.batch_size) + 1
 
         dataloader = DataLoader(self.train_ds, batch_size=self.batch_size, shuffle=True)
@@ -53,14 +55,15 @@ class ANN(nn.Module):
                 optimizer.step()
                 optimizer.zero_grad()
                 batch_number += 1
-                #print(f'Epoch:{epoch + 1} (of {self.num_epochs}), Batch: {batch_number} of {n_batches}, Loss:{loss.item():.6f}')
+                r2 = r2_score(y.detach().cpu().numpy(), y_hat.detach().cpu().numpy())
+                print(f'Epoch:{epoch + 1} (of {self.num_epochs}), Batch: {batch_number} of {n_batches}, Loss:{loss.item():.3f}, R2: {r2:.3f}')
 
     def test(self):
         batch_size = 30000
         self.eval()
         self.to(self.device)
 
-        dataloader = DataLoader(self.test_ds, batch_size=batch_size, shuffle=False)
+        dataloader = DataLoader(self.test_ds, batch_size=batch_size, shuffle=True)
 
         y_all = np.zeros(0)
         y_hat_all = np.zeros(0)

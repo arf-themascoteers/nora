@@ -54,6 +54,7 @@ class FoldEvaluator:
         config = self.config_list[index_config]
         ds = FoldDSManager(self.csvs[index_config], folds=self.folds, x=config["input"], y=config["output"])
         for fold_number, (train_ds, test_ds) in enumerate(ds.get_k_folds()):
+            print("CSV: ", self.csvs[index_config])
             r2, rmse = self.reporter.get_details(index_algorithm, repeat_number, fold_number, index_config)
             if r2 != 0:
                 print(f"{repeat_number}-{fold_number} done already")
