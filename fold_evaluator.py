@@ -13,7 +13,7 @@ class FoldEvaluator:
         self.algorithms = algorithms
 
         if self.algorithms is None:
-            self.algorithms = ["mlr", "plsr", "rf", "svr", "ann"]#, "ann", "cnn", "transformer", "lstm"]
+            self.algorithms = ["mlr", "rf", "svr", "ann"]#, "ann", "cnn", "transformer", "lstm"]
 
         self.config_list = []
         self.csvs = []
