@@ -48,6 +48,8 @@ class ANN(nn.Module):
         best_r2_epoch = 0
         tol = 0
         for epoch in range(self.num_epochs):
+            y = None
+            y_hat = None
             for batch_number, (x, y) in enumerate(dataloader):
                 x = x.to(self.device)
                 y = y.to(self.device)
@@ -76,7 +78,9 @@ class ANN(nn.Module):
                 else:
                     tol = tol + 1
                 if tol >= self.TOLERANCE:
-                    print(f"Tolerance exceeded. Current {r2_validation} at epoch {epoch}. Best {best_r2} was at epoch {best_r2_epoch}")
+                    r2_test = r2_score(y.detach().cpu().numpy(), y_hat.detach().cpu().numpy())
+                    print(f"Tolerance exceeded. Current {r2_validation} at epoch {epoch}. "
+                          f"Best {best_r2} was at epoch {best_r2_epoch}. Test {r2_test}")
                     return
 
     def evaluate(self, ds):
