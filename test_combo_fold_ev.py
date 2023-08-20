@@ -10,9 +10,11 @@ if __name__ == "__main__":
         ["B04", "B03", "B02"],
         ["red", "green", "blue"],
         ["B04", "B03", "B02", "red", "green", "blue"],
+        ["B04", "B03", "B02", "elevation", "moisture", "temp"],
+        ["red", "green", "blue", "elevation", "moisture", "temp"],
+        ["B04", "B03", "B02", "red", "green", "blue", "elevation", "moisture", "temp"],
         ["B01", "B02", "B03", "B04", "B05", "B06", "B07", "B08", "B8A", "B09", "B11", "B12", "red", "green", "blue"],
         ["B01", "B02", "B03", "B04", "B05", "B06", "B07", "B08", "B8A", "B09", "B11", "B12", "red", "green", "blue","elevation", "moisture", "temp"],
-        ["B04", "B03", "B02", "red", "green", "blue", "elevation", "moisture", "temp"],
     ]
     configs = []
 
