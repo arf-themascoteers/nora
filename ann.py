@@ -26,9 +26,7 @@ class ANN(nn.Module):
         x_size = validation_x.shape[1]
 
         self.linear = nn.Sequential(
-            nn.Linear(x_size, 20),
-            nn.LeakyReLU(),
-            nn.Linear(20, 10),
+            nn.Linear(x_size, 10),
             nn.LeakyReLU(),
             nn.Linear(10, 1)
         )

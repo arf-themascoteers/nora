@@ -7,11 +7,11 @@ import pandas as pd
 
 
 class Clipper:
-    def __init__(self, source, dest, source_csv_path):
+    def __init__(self, source, dest, source_csv_path, padding=20):
         self.source = source
         self.dest = dest
         self.source_csv_path = source_csv_path
-        self.PADDING = 20
+        self.PADDING = padding
 
     def get_bounding_box(self, source_csv_path):
         PADDING = 0
@@ -63,7 +63,7 @@ class Clipper:
 
 
 if __name__ == "__main__":
-    source = r"D:\Data\Tim\Created\Vectis\Sentinel-2\S2B_MSIL2A_20220503T002659_N0400_R016_T54HXE_20220503T023159\S2B_MSIL2A_20220503T002659_N0400_R016_T54HXE_20220503T023159.SAFE\GRANULE\L2A_T54HXE_A026926_20220503T003625\IMG_DATA\R60m\T54HXE_20220503T002659_TCI_60m.jp2"
+    source = r"D:\Data\Tim\Created\Vectis\Higher\SKYWATCH_PHR_PS_20220204T0037_RGBN_Tile_0_0_e031.tif"
     dest = r"D:\out\abc.tif"
     source_csv_path = "data/shorter.csv"
     clipper = Clipper(source, dest, source_csv_path)

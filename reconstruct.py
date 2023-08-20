@@ -8,13 +8,14 @@ import os
 
 class Reconstructor:
     @staticmethod
-    def recon(csv, height=None, width=None, save=True):
+    def recon(csv, height=None, width=None, save=True, pad=False):
         df = None
         if isinstance(csv, str):
             df = pd.read_csv(csv)
         else:
             df = csv
-        df = df[df["scene"] == 1]
+        if "scene" in df.columns:
+            df = df[df["scene"] == 1]
         if height is None or width is None:
             max_row = df["row"].max()
             max_col = df["column"].max()
@@ -27,7 +28,10 @@ class Reconstructor:
             pix = df.loc[i,"B03"]
             row = int(row)
             col = int(col)
-            x[row,col] = pix
+            if pad:
+                x[row-5:row+5,col-5:col+5] = pix
+            else:
+                x[row,col] = pix
         plt.imshow(x)
         file_name = os.path.basename(csv)
         if save:
@@ -47,11 +51,12 @@ class Reconstructor:
 
 if __name__ == "__main__":
     basedir = r"data/processed/47eb237b21511beb392f4845d460e399"
+    basedir = r"data/hi1p"
     path = CSVCollector.collect(basedir)
-    height, width = Reconstructor.recon(path["ag"])
+    height, width = Reconstructor.recon(path["ag"],pad=True)
 
     for s in Splitter.get_all_split_starts():
         train = path[CSVCollector.get_key_spatial(s,"train", ml_ready=False)]
         test = path[CSVCollector.get_key_spatial(s,"test", ml_ready=False)]
-        Reconstructor.recon(train, height, width)
-        Reconstructor.recon(test, height, width)
+        Reconstructor.recon(train, height, width,pad=True)
+        Reconstructor.recon(test, height, width,pad=True)

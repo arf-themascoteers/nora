@@ -1,11 +1,11 @@
 import pandas as pd
 from sklearn.preprocessing import MinMaxScaler
 import numpy as np
-from splitter import Splitter
 from csv_collector import CSVCollector
+from hires1_splitter import Hires1Splitter
 
 
-class CSVCreator:
+class Hires1CSVCreator:
     def __init__(self, df, export_dir, ag):
         self.df = df
         self.ag = ag
@@ -46,7 +46,7 @@ class CSVCreator:
         self.make_ml_ready()
 
         for ml, spl in CSVCollector.ml_split_combinations():
-            s = Splitter(self.paths["ag"], split_strat=spl)
+            s = Hires1Splitter(self.paths["ag"], split_strat=spl)
             train, test = s.split_it()
 
             train_key = CSVCollector.get_key_spatial(spl, "train", False)
