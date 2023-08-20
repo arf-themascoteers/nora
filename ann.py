@@ -19,7 +19,7 @@ class ANN(nn.Module):
         self.num_epochs = 1000
         self.batch_size = 3000
         self.lr = 0.01
-        self.TOLERANCE = 10
+        self.TOLERANCE = 20
         self.EARLY_STOP_THRESHOLD = 50
         self.BEST_MODEL_PATH = r"models/best.h5"
 
@@ -61,7 +61,7 @@ class ANN(nn.Module):
 
                 if self.verbose:
                     r2_test = r2_score(y.detach().cpu().numpy(), y_hat.detach().cpu().numpy())
-                    y_all, y_hat_all = self.evaluate(self, self.validation_ds)
+                    y_all, y_hat_all = self.evaluate(self.validation_ds)
                     r2_validation = r2_score(y_all, y_hat_all)
                     print(f'Epoch:{epoch + 1} (of {self.num_epochs}), Batch: {batch_number+1} of {total_batch}, '
                           f'Loss:{loss.item():.3f}, R2_TEST: {r2_test:.3f}, R2_Validation: {r2_validation:.3f}')
@@ -76,6 +76,7 @@ class ANN(nn.Module):
                 else:
                     tol = tol + 1
                 if tol >= self.TOLERANCE:
+                    print(f"Tolerance exceeded. Current {r2_validation}. Best {best_r2}")
                     return
 
     def evaluate(self, ds):
