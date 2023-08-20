@@ -83,6 +83,9 @@ class ANN(nn.Module):
                     r2_train = r2_score(y.detach().cpu().numpy(), y_hat.detach().cpu().numpy())
                     print(f"Tolerance exceeded. Current {r2_validation} at epoch {epoch}. "
                           f"Best {best_r2} was at epoch {best_r2_epoch}. Train {r2_train}")
+                    y_test, y_test_hat = self.evaluate(self.test_ds)
+                    r2_test = r2_score(y_test, y_test_hat)
+                    print(f"Test {r2_test}")
                     return
 
     def evaluate(self, ds):
