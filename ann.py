@@ -16,19 +16,17 @@ class ANN(nn.Module):
         self.train_ds = SoilDataset(train_x, train_y)
         self.test_ds = SoilDataset(test_x, test_y)
         self.validation_ds = SoilDataset(validation_x, validation_y)
-        self.num_epochs = 2000
+        self.num_epochs = 1000
         self.batch_size = 3000
         self.lr = 0.01
         self.TOLERANCE = 100
-        self.EARLY_STOP_THRESHOLD = 500
+        self.EARLY_STOP_THRESHOLD = 990
         self.BEST_MODEL_PATH = r"models/best.h5"
 
         x_size = validation_x.shape[1]
 
         self.linear = nn.Sequential(
-            nn.Linear(x_size, 20),
-            nn.LeakyReLU(),
-            nn.Linear(20, 10),
+            nn.Linear(x_size, 10),
             nn.LeakyReLU(),
             nn.Linear(10, 1)
         )
