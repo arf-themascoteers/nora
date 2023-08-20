@@ -27,7 +27,7 @@ class HighFoldEvaluator:
             self.csvs.append(paths["ml"])
 
         self.reporter = FoldReporter(prefix, self.config_list, 1, "",
-                                 algorithms, self.repeat, self.folds)
+                                 self.algorithms, self.repeat, self.folds)
 
     def process(self):
         for repeat_number in range(self.repeat):
