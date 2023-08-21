@@ -1,0 +1,10 @@
+config,R2(mlr),R2(rf),R2(svr),R2(ann),RMSE(mlr),RMSE(rf),RMSE(svr),RMSE(ann),input,output
+B04+2_random,0.126,0.163,0.309,0.197,0.184,0.171,0.171,0.171,B04-B03-B02,som
+red+2_random,0.039,0.203,0.193,0.147,0.188,0.182,0.177,0.178,red-green-blue,som
+elevation+2_random,0.552,0.649,0.687,0.649,0.129,0.107,0.098,0.107,elevation-moisture-temp,som
+B04+5_random,0.137,0.313,0.238,0.269,0.182,0.162,0.162,0.166,B04-B03-B02-red-green-blue,som
+B04+5_random,0.537,0.659,0.705,0.623,0.127,0.106,0.099,0.112,B04-B03-B02-elevation-moisture-temp,som
+red+5_random,0.484,0.705,0.693,0.648,0.13,0.102,0.096,0.111,red-green-blue-elevation-moisture-temp,som
+B04+8_random,0.545,0.634,0.697,0.629,0.127,0.107,0.101,0.111,B04-B03-B02-red-green-blue-elevation-moisture-temp,som
+B01+14_random,0.526,0.481,0.566,0.544,0.129,0.135,0.122,0.129,B01-B02-B03-B04-B05-B06-B07-B08-B8A-B09-B11-B12-red-green-blue,som
+B01+17_random,0.588,0.639,0.731,0.641,0.114,0.103,0.095,0.112,B01-B02-B03-B04-B05-B06-B07-B08-B8A-B09-B11-B12-red-green-blue-elevation-moisture-temp,som
