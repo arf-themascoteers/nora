@@ -51,12 +51,12 @@ class Reconstructor:
 
 if __name__ == "__main__":
     basedir = r"data/processed/47eb237b21511beb392f4845d460e399"
-    basedir = r"data/hi1p"
+    #basedir = r"data/hi1p"
     path = CSVCollector.collect(basedir)
     height, width = Reconstructor.recon(path["ag"],pad=True)
 
-    for s in ["random"]:
+    for s in Splitter.get_all_split_starts():
         train = path[CSVCollector.get_key_spatial(s,"train", ml_ready=False)]
         test = path[CSVCollector.get_key_spatial(s,"test", ml_ready=False)]
-        Reconstructor.recon(train, height, width,pad=True)
-        Reconstructor.recon(test, height, width,pad=True)
+        Reconstructor.recon(train, height, width,pad=False)
+        Reconstructor.recon(test, height, width,pad=False)
