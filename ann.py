@@ -4,6 +4,7 @@ import torch.nn as nn
 from torch.utils.data import DataLoader
 from sklearn.metrics import r2_score
 from soil_dataset import SoilDataset
+from time import time
 
 
 class ANN(nn.Module):
@@ -21,7 +22,8 @@ class ANN(nn.Module):
         self.lr = 0.01
         self.TOLERANCE = 50
         self.EARLY_STOP_THRESHOLD = 1000
-        self.BEST_MODEL_PATH = r"models/best.h5"
+        model_name = str(time()).replace(".","_")
+        self.BEST_MODEL_PATH = f"models/{model_name}.h5"
         self.EARLY_STOP = True
 
         x_size = validation_x.shape[1]
@@ -77,7 +79,7 @@ class ANN(nn.Module):
                     if r2_validation > best_r2:
                         best_r2 = r2_validation
                         best_r2_epoch = epoch
-                        torch.save(self.state_dict(), 'models/best.h5')
+                        torch.save(self.state_dict(), self.BEST_MODEL_PATH)
                         tol = 0
                     else:
                         tol = tol + 1
