@@ -126,6 +126,6 @@ class ClipsToDF:
         return row, column
 
     def is_reverve(self):
-        if self.ag is not None and self.ag == "low":
+        if self.ag is not None and self.ag == "high":
             return True
         return False
