@@ -1,18 +1,21 @@
 from single_fold_evaluator import SingleFoldEvaluator
+from base_path import BASE_PATH
+import os
 
 
 if __name__ == "__main__":
-    base_config = {
-        "ag": "low",
-        "scene": "S2B_MSIL2A_20220413T002709_N0400_R016_T54HXE_20220413T021511"
-    }
     inputs = ["vis"]
     configs = []
 
-    for i in inputs:
-        a_config = base_config.copy()
-        a_config["input"] = i
+    for i in os.listdir(BASE_PATH):
+        path = os.path.join(BASE_PATH, i)
+        if not os.path.isdir(path):
+            continue
+        if not i.startswith("S2"):
+            continue
+        a_config = {"input": "vis", "scene":i}
         configs.append(a_config)
 
-    c = SingleFoldEvaluator(configs=configs, prefix="fold", folds=2, algorithms=["mlr"])
+    print(configs)
+    c = SingleFoldEvaluator(configs=configs, prefix="5_Scenes", folds=2, algorithms=["mlr"])
     c.process()

@@ -13,7 +13,7 @@ class SingleConfigCreator:
         else:
             config_object["input"] = config["input"]
 
-        for a_prop in ["output","ag","split_strat","scenes","name"]:
+        for a_prop in ["output","split_strat","scene","name"]:
             if a_prop in config:
                 config_object[a_prop] = config[a_prop]
 
